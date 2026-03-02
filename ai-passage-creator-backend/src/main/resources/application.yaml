@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: ai-passage-creator
+  # session 配置
+  session:
+    store-type: redis
+    # session 30 天过期
+    timeout: 2592000
+  # Redis 配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+      password:
+  # MySQL 数据库配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/ai_passage?Unicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: root
+    password: 123456
+  # Jackson 全局时间格式配置
+  jackson:
+    time-zone: GMT+8
+  ai:
+    dashscope:
+      # 你的阿里云模型密钥
+      api-key: ${DASHSCOPE_API_KEY:}
+      chat:
+        options:
+          # 不指定model默认qwen-turbo，这里建议明确写死
+          model: qwen-plus
+server:
+  port: 8123
+  servlet:
+    context-path: /api
+    # cookie 30 天过期
+    session:
+      cookie:
+        max-age: 2592000
+
+mybatis-flex:
+  configuration:
+    map-underscore-to-camel-case: false
+
+# springdoc-openapi 配置
+springdoc:
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.zkx.aipassagecreator.controller
+# knife4j 接口文档配置
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
