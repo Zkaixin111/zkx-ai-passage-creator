@@ -23,13 +23,18 @@ spring:
   jackson:
     time-zone: GMT+8
   ai:
-    dashscope:
+    openai:
+      # 阿里云 DashScope 的 OpenAI 兼容模式端点
+      # 注意: Spring AI 1.1.0 的 OpenAiApi 内部已自动拼接 "/v1/chat/completions",
+      #       因此 base-url 只能写到 /compatible-mode, 不能带末尾的 /v1, 否则会变成 /v1/v1 导致 404
+      #       (qwen3.7-plus 等模型仅在该兼容模式可用, DashScope 原生接口会报 url error)
+      base-url: https://dashscope.aliyuncs.com/compatible-mode
       # 你的阿里云模型密钥
       api-key: ${DASHSCOPE_API_KEY:}
       chat:
         options:
-          # 不指定model默认qwen-turbo，这里建议明确写死
-          model: qwen-plus
+          # 不指定 model 默认 gpt-4o，这里明确写死
+          model: qwen3.7-plus
 server:
   port: 8123
   servlet:

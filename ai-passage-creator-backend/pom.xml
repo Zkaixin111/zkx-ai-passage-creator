@@ -46,11 +46,13 @@
             <artifactId>spring-ai-alibaba-agent-framework</artifactId>
             <version>1.1.0.0-RC2</version>
         </dependency>
-        <!-- Spring AI Alibaba DashScope Starter -->
+        <!-- 使用 Spring AI OpenAI Starter 接入 DashScope 的 OpenAI 兼容模式
+             (base-url 指向 .../compatible-mode/v1)，以便支持 qwen3.7-plus 等仅在兼容模式可用的模型。
+             注意: Spring AI 1.0.0 GA 起 starter 已重命名为 spring-ai-starter-model-openai -->
         <dependency>
-            <groupId>com.alibaba.cloud.ai</groupId>
-            <artifactId>spring-ai-alibaba-starter-dashscope</artifactId>
-            <version>1.1.0.0-RC2</version>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-starter-model-openai</artifactId>
+            <version>1.1.0</version>
         </dependency>
 
 
