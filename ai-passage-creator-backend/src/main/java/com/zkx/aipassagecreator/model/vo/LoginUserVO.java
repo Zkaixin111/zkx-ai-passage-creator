@@ -18,6 +18,8 @@ public class LoginUserVO implements Serializable {
     private String userAvatar;
     private String userProfile;
     private String userRole;
+    /** 剩余配额（MVP 阶段返回大值放行，前端 hasQuota 恒为 true） */
+    private Long quota;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 }

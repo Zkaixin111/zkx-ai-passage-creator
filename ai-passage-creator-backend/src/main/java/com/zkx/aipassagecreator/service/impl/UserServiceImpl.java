@@ -401,6 +401,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         loginUserVO.setUserAvatar(user.getUserAvatar());
         loginUserVO.setUserProfile(user.getUserProfile());
         loginUserVO.setUserRole(user.getUserRole());
+        // MVP 阶段不做配额限制，返回大值使前端 hasQuota 放行
+        loginUserVO.setQuota(Long.MAX_VALUE);
         loginUserVO.setCreateTime(user.getCreateTime());
         loginUserVO.setUpdateTime(user.getUpdateTime());
         return loginUserVO;

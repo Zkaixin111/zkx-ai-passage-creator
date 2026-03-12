@@ -4,7 +4,7 @@
 create database if not exists ai_passage;
 
 -- 切换库
-use ai_passgae;
+use ai_passage;
 
 -- 用户表
 create table if not exists user
@@ -57,3 +57,9 @@ create table if not exists article
     INDEX idx_createTime (createTime),
     INDEX idx_userId_status (userId, status)
 ) comment '文章表' collate = utf8mb4_unicode_ci;
+
+-- 文章生成模块扩展字段（如已建库执行一次即可）
+ALTER TABLE article ADD COLUMN userDescription varchar(500) NULL COMMENT '用户补充描述' AFTER topic;
+ALTER TABLE article ADD COLUMN titleOptions json NULL COMMENT '标题方案列表(JSON)' AFTER subTitle;
+ALTER TABLE article ADD COLUMN phase varchar(32) NULL COMMENT '当前阶段' AFTER status;
+

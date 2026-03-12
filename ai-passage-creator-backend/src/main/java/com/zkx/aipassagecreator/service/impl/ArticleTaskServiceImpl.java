@@ -1,0 +1,332 @@
+package com.zkx.aipassagecreator.service.impl;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mybatisflex.core.query.QueryWrapper;
+import com.zkx.aipassagecreator.agent.*;
+import com.zkx.aipassagecreator.common.JsonExtractUtil;
+import com.zkx.aipassagecreator.constant.PromptConstant;
+import com.zkx.aipassagecreator.exception.BusinessException;
+import com.zkx.aipassagecreator.exception.ErrorCode;
+import com.zkx.aipassagecreator.mapper.ArticleMapper;
+import com.zkx.aipassagecreator.model.context.ArticleTaskContext;
+import com.zkx.aipassagecreator.model.dto.ArticleAiModifyOutlineRequest;
+import com.zkx.aipassagecreator.model.dto.ArticleConfirmOutlineRequest;
+import com.zkx.aipassagecreator.model.dto.ArticleConfirmTitleRequest;
+import com.zkx.aipassagecreator.model.dto.ArticleCreateRequest;
+import com.zkx.aipassagecreator.model.entity.Article;
+import com.zkx.aipassagecreator.model.enums.ArticlePhaseEnum;
+import com.zkx.aipassagecreator.model.enums.ArticleStatusEnum;
+import com.zkx.aipassagecreator.model.vo.AgentExecutionStats;
+import com.zkx.aipassagecreator.model.vo.OutlineItem;
+import com.zkx.aipassagecreator.model.vo.OutlineSection;
+import com.zkx.aipassagecreator.service.ArticleTaskService;
+import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+
+/**
+ * 文章任务编排服务实现
+ * <p>
+ * 三层架构中的「异步执行层」：提交线程池执行智能体链路，接口快速返回。
+ * 内存维护 taskId → ArticleTaskContext，任务完成后清理。
+ */
+@Slf4j
+@Service
+public class ArticleTaskServiceImpl implements ArticleTaskService {
+
+    @Resource
+    private ArticleMapper articleMapper;
+
+    @Resource
+    @Qualifier("articleTaskExecutor")
+    private Executor taskExecutor;
+
+    @Resource
+    private TitleAgent titleAgent;
+
+    @Resource
+    private OutlineAgent outlineAgent;
+
+    @Resource
+    private ContentAgent contentAgent;
+
+    @Resource
+    private ImageAnalyzeAgent imageAnalyzeAgent;
+
+    @Resource
+    private ImageFetchAgent imageFetchAgent;
+
+    @Resource
+    private MergeAgent mergeAgent;
+
+    @Resource
+    private ChatClient.Builder chatClientBuilder;
+
+    private final Map<String, ArticleTaskContext> contextMap = new ConcurrentHashMap<>();
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
+    @Override
+    public String createTask(ArticleCreateRequest request, Long userId) {
+        String taskId = UUID.randomUUID().toString();
+
+        Article article = new Article();
+        article.setTaskId(taskId);
+        article.setUserId(userId);
+        article.setTopic(request.getTopic());
+        article.setStatus(ArticleStatusEnum.PROCESSING.getValue());
+        article.setPhase(ArticlePhaseEnum.TITLE_GENERATING.getValue());
+        // MyBatis-Flex insert 为全字段插入，NOT NULL 列需显式赋值
+        LocalDateTime now = LocalDateTime.now();
+        article.setCreateTime(now);
+        article.setUpdateTime(now);
+        article.setIsDelete(0);
+        articleMapper.insert(article);
+
+        ArticleTaskContext ctx = new ArticleTaskContext();
+        ctx.setTaskId(taskId);
+        ctx.setUserId(userId);
+        ctx.setTopic(request.getTopic());
+        ctx.setStyle(request.getStyle());
+        ctx.setEnabledImageMethods(request.getEnabledImageMethods());
+        ctx.setStartTime(System.currentTimeMillis());
+        contextMap.put(taskId, ctx);
+
+        // 异步启动智能体1（生成标题），完成后持久化标题方案并暂停等待用户确认
+        taskExecutor.execute(() -> {
+            try {
+                titleAgent.execute(ctx);
+                if (ctx.isCancelled()) {
+                    return; // 智能体内部已推送错误
+                }
+                Article art = getArticleByTaskId(taskId);
+                art.setTitleOptions(toJson(ctx.getTitleOptions()));
+                art.setPhase(ArticlePhaseEnum.TITLE_SELECTING.getValue());
+                art.setUpdateTime(LocalDateTime.now());
+                articleMapper.update(art);
+            } catch (Exception e) {
+                log.error("创建任务后智能体1执行异常: {}", e.getMessage(), e);
+                markFailed(taskId, "标题生成失败");
+            }
+        });
+        return taskId;
+    }
+
+    @Override
+    public void confirmTitle(ArticleConfirmTitleRequest request, Long userId) {
+        String taskId = request.getTaskId();
+        ArticleTaskContext ctx = getContext(taskId, userId);
+        ctx.setSelectedMainTitle(request.getSelectedMainTitle());
+        ctx.setSelectedSubTitle(request.getSelectedSubTitle());
+        ctx.setUserDescription(request.getUserDescription());
+
+        Article article = getArticleByTaskId(taskId);
+        article.setMainTitle(request.getSelectedMainTitle());
+        article.setSubTitle(request.getSelectedSubTitle());
+        article.setUserDescription(request.getUserDescription());
+        article.setPhase(ArticlePhaseEnum.OUTLINE_GENERATING.getValue());
+        articleMapper.update(article);
+
+        // 异步启动智能体2（生成大纲，流式），完成后持久化大纲并暂停等待用户确认
+        taskExecutor.execute(() -> {
+            try {
+                outlineAgent.execute(ctx);
+                if (ctx.isCancelled()) {
+                    return; // 智能体内部已推送错误
+                }
+                Article art = getArticleByTaskId(taskId);
+                art.setOutline(toJson(ctx.getOutline()));
+                art.setPhase(ArticlePhaseEnum.OUTLINE_EDITING.getValue());
+                art.setUpdateTime(LocalDateTime.now());
+                articleMapper.update(art);
+            } catch (Exception e) {
+                log.error("确认标题后智能体2执行异常: {}", e.getMessage(), e);
+                markFailed(taskId, "大纲生成失败");
+            }
+        });
+    }
+
+    @Override
+    public void confirmOutline(ArticleConfirmOutlineRequest request, Long userId) {
+        String taskId = request.getTaskId();
+        ArticleTaskContext ctx = getContext(taskId, userId);
+        // 保存用户编辑后的大纲
+        List<OutlineItem> outline = request.getOutline().stream().map(section -> {
+            OutlineItem item = new OutlineItem();
+            item.setSection(section.getSection());
+            item.setTitle(section.getTitle());
+            item.setPoints(section.getPoints());
+            return item;
+        }).toList();
+        ctx.setOutline(outline);
+
+        Article article = getArticleByTaskId(taskId);
+        article.setOutline(toJson(outline));
+        article.setPhase(ArticlePhaseEnum.CONTENT_GENERATING.getValue());
+        articleMapper.update(article);
+
+        // 异步启动智能体3-6（正文→配图分析→配图→合成）
+        taskExecutor.execute(() -> {
+            try {
+                contentAgent.execute(ctx);
+                if (ctx.isCancelled()) {
+                    return;
+                }
+                imageAnalyzeAgent.execute(ctx);
+                if (ctx.isCancelled()) {
+                    return;
+                }
+                imageFetchAgent.execute(ctx);
+                if (ctx.isCancelled()) {
+                    return;
+                }
+                mergeAgent.execute(ctx);
+                if (ctx.isCancelled()) {
+                    return;
+                }
+                persistCompleted(article, ctx);
+            } catch (Exception e) {
+                log.error("确认大纲后智能体链路执行异常: {}", e.getMessage(), e);
+                markFailed(taskId, "内容生成失败");
+            } finally {
+                contextMap.remove(taskId);
+            }
+        });
+    }
+
+    @Override
+    public List<OutlineSection> aiModifyOutline(ArticleAiModifyOutlineRequest request, Long userId) {
+        String taskId = request.getTaskId();
+        Article article = getArticleByTaskId(taskId);
+        if (!article.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限操作该任务");
+        }
+        String outlineJson = article.getOutline() == null ? "[]" : article.getOutline();
+        Map<String, String> vars = new HashMap<>();
+        vars.put("outline", outlineJson);
+        vars.put("suggestion", request.getModifySuggestion() == null ? "" : request.getModifySuggestion());
+        String prompt = PromptConstant.render(PromptConstant.AI_MODIFY_OUTLINE_PROMPT, vars);
+
+        String result = chatClientBuilder.build().prompt().user(prompt).call().content();
+        List<OutlineSection> newOutline = JsonExtractUtil.parseList(result, OutlineSection.class);
+
+        // 同步更新数据库与内存上下文
+        article.setOutline(toJson(newOutline));
+        articleMapper.update(article);
+        ArticleTaskContext ctx = contextMap.get(taskId);
+        if (ctx != null) {
+            ctx.setOutline(newOutline.stream().map(s -> {
+                OutlineItem item = new OutlineItem();
+                item.setSection(s.getSection());
+                item.setTitle(s.getTitle());
+                item.setPoints(s.getPoints());
+                return item;
+            }).toList());
+        }
+        return newOutline;
+    }
+
+    // ==================== 私有辅助 ====================
+
+    /**
+     * 获取任务执行统计/日志（供 execution-logs 接口使用）
+     * <p>
+     * 任务进行中从内存上下文读取；完成后返回基础统计。
+     */
+    public AgentExecutionStats getExecutionStats(String taskId, Long userId) {
+        Article article = getArticleByTaskId(taskId);
+        if (!article.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限查看该任务");
+        }
+        AgentExecutionStats stats = new AgentExecutionStats();
+        stats.setTaskId(taskId);
+        stats.setOverallStatus(article.getStatus());
+        ArticleTaskContext ctx = contextMap.get(taskId);
+        if (ctx != null) {
+            stats.setAgentCount(ctx.getAgentDurations().size());
+            stats.setAgentDurations(ctx.getAgentDurations());
+            stats.setTotalDurationMs(System.currentTimeMillis() - ctx.getStartTime());
+            stats.setLogs(ctx.getLogs());
+        } else {
+            stats.setAgentCount(0);
+            stats.setAgentDurations(new HashMap<>());
+            stats.setTotalDurationMs(0L);
+            stats.setLogs(new ArrayList<>());
+        }
+        return stats;
+    }
+
+    private ArticleTaskContext getContext(String taskId, Long userId) {
+        if (taskId == null || taskId.isBlank()) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "任务 ID 不能为空");
+        }
+        ArticleTaskContext ctx = contextMap.get(taskId);
+        if (ctx == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "任务不存在或已过期，请重新创建");
+        }
+        if (!ctx.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限操作该任务");
+        }
+        return ctx;
+    }
+
+    private Article getArticleByTaskId(String taskId) {
+        QueryWrapper queryWrapper = new QueryWrapper();
+        queryWrapper.eq("taskId", taskId);
+        Article article = articleMapper.selectOneByQuery(queryWrapper);
+        if (article == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "文章不存在");
+        }
+        return article;
+    }
+
+    private String toJson(Object obj) {
+        try {
+            return OBJECT_MAPPER.writeValueAsString(obj);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
+     * 全链路完成后持久化最终结果
+     */
+    private void persistCompleted(Article article, ArticleTaskContext ctx) {
+        article.setContent(ctx.getContent().toString());
+        article.setFullContent(ctx.getFullContent());
+        article.setImages(toJson(ctx.getImages()));
+        if (ctx.getImages() != null && !ctx.getImages().isEmpty()) {
+            article.setCoverImage(ctx.getImages().get(0).getUrl());
+        }
+        article.setStatus(ArticleStatusEnum.COMPLETED.getValue());
+        article.setPhase(ArticlePhaseEnum.COMPLETED.getValue());
+        article.setCompletedTime(LocalDateTime.now());
+        articleMapper.update(article);
+    }
+
+    /**
+     * 标记任务失败并推送错误
+     */
+    private void markFailed(String taskId, String message) {
+        try {
+            Article article = getArticleByTaskId(taskId);
+            article.setStatus(ArticleStatusEnum.FAILED.getValue());
+            article.setPhase(ArticlePhaseEnum.FAILED.getValue());
+            article.setErrorMessage(message);
+            articleMapper.update(article);
+        } catch (Exception e) {
+            log.error("标记任务失败异常: {}", e.getMessage());
+        }
+    }
+}

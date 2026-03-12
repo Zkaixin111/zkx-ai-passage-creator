@@ -1,0 +1,116 @@
+package com.zkx.aipassagecreator.model.context;
+
+import com.zkx.aipassagecreator.model.vo.AgentLog;
+import com.zkx.aipassagecreator.model.vo.ImageItem;
+import com.zkx.aipassagecreator.model.vo.OutlineItem;
+import com.zkx.aipassagecreator.model.vo.TitleOption;
+import lombok.Data;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * 文章任务上下文（状态容器）
+ * <p>
+ * 每个任务一个实例，在 6 个智能体之间传递数据，对应需求文档中的"状态类作为容器"。
+ * 任务完成/失败后由编排服务清理。
+ */
+@Data
+public class ArticleTaskContext {
+
+    /** 任务 ID */
+    private String taskId;
+
+    /** 用户 ID */
+    private Long userId;
+
+    /** 选题 */
+    private String topic;
+
+    /** 文章风格 */
+    private String style;
+
+    /** 启用的配图方式 */
+    private List<String> enabledImageMethods;
+
+    /** 标题方案列表（智能体1产出） */
+    private List<TitleOption> titleOptions = new ArrayList<>();
+
+    /** 选中的主标题（用户确认） */
+    private String selectedMainTitle;
+
+    /** 选中的副标题（用户确认） */
+    private String selectedSubTitle;
+
+    /** 用户补充描述 */
+    private String userDescription;
+
+    /** 大纲（智能体2产出，用户可能编辑） */
+    private List<OutlineItem> outline = new ArrayList<>();
+
+    /** 正文内容（智能体3流式产出） */
+    private StringBuilder content = new StringBuilder();
+
+    /** 配图需求（智能体4产出） */
+    private List<ImageItem> imageRequirements = new ArrayList<>();
+
+    /** 配图列表（智能体5产出） */
+    private List<ImageItem> images = new ArrayList<>();
+
+    /** 完整图文（智能体6产出） */
+    private String fullContent;
+
+    /** SSE 连接（任务全生命周期复用） */
+    private SseEmitter sseEmitter;
+
+    /** 任务开始时间 */
+    private long startTime;
+
+    /** 各智能体耗时（毫秒） */
+    private Map<String, Long> agentDurations = new LinkedHashMap<>();
+
+    /** 智能体执行日志 */
+    private List<AgentLog> logs = new ArrayList<>();
+
+    /** 任务是否已终止（失败后置位） */
+    private volatile boolean cancelled;
+
+    /**
+     * 记录智能体耗时
+     */
+    public void recordDuration(String agentName, long durationMs) {
+        agentDurations.put(agentName, durationMs);
+    }
+
+    /**
+     * 添加执行日志
+     */
+    public void addLog(String agentName, String status, String prompt, String inputData, String outputData,
+                       String errorMessage, long durationMs) {
+        AgentLog log = new AgentLog();
+        log.setTaskId(taskId);
+        log.setAgentName(agentName);
+        log.setStatus(status);
+        log.setStartTime(LocalDateTime.now().minusNanos(durationMs * 1_000_000L)
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        log.setEndTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        log.setDurationMs(durationMs);
+        log.setPrompt(truncate(prompt, 1000));
+        log.setInputData(truncate(inputData, 2000));
+        log.setOutputData(truncate(outputData, 2000));
+        log.setErrorMessage(truncate(errorMessage, 500));
+        logs.add(log);
+    }
+
+    private String truncate(String s, int max) {
+        if (s == null) {
+            return null;
+        }
+        return s.length() > max ? s.substring(0, max) : s;
+    }
+}
