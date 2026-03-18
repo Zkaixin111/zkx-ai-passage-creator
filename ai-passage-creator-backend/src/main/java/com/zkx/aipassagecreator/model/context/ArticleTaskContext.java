@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 文章任务上下文（状态容器）
@@ -79,6 +80,40 @@ public class ArticleTaskContext {
 
     /** 任务是否已终止（失败后置位） */
     private volatile boolean cancelled;
+
+    /** 大纲生成任务是否已启动（CAS 防重，防止重复确认触发重复执行） */
+    private final AtomicBoolean outlineTaskStarted = new AtomicBoolean(false);
+
+    /** 正文生成任务是否已启动（CAS 防重，防止重复确认触发重复执行） */
+    private final AtomicBoolean contentTaskStarted = new AtomicBoolean(false);
+
+    /** 最后活动时间戳（用于任务过期检测，毫秒） */
+    private volatile long lastActiveTime = System.currentTimeMillis();
+
+    /**
+     * 标记大纲生成已启动；返回 true 表示首次启动成功，false 表示已启动过（应拒绝重复操作）
+     */
+    public boolean markOutlineStarted() {
+        return outlineTaskStarted.compareAndSet(false, true);
+    }
+
+    /**
+     * 标记正文生成已启动；返回 true 表示首次启动成功，false 表示已启动过（应拒绝重复操作）
+     */
+    public boolean markContentStarted() {
+        return contentTaskStarted.compareAndSet(false, true);
+    }
+
+    /**
+     * 刷新最后活动时间（用户每次确认/查询操作时调用）
+     */
+    public void touch() {
+        lastActiveTime = System.currentTimeMillis();
+    }
+
+    public long getLastActiveTime() {
+        return lastActiveTime;
+    }
 
     /**
      * 记录智能体耗时

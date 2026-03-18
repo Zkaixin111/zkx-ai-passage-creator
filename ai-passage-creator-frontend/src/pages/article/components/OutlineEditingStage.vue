@@ -255,7 +255,10 @@ const handleAiModify = async () => {
       taskId: props.taskId,
       modifySuggestion: modifySuggestion.value
     })
-
+    if (res.data.code !== 0) {
+      message.error(res.data.message || 'AI 修改失败')
+      return
+    }
     if (res.data.data) {
       outlineSections.value = res.data.data.map((item, index) => ({
         section: item.section ?? index + 1,

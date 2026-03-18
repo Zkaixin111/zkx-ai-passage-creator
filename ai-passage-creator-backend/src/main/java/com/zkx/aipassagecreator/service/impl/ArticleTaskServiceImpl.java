@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.zkx.aipassagecreator.agent.*;
 import com.zkx.aipassagecreator.common.JsonExtractUtil;
+import com.zkx.aipassagecreator.config.SseEmitterManager;
+import com.zkx.aipassagecreator.constant.ArticleConstant;
 import com.zkx.aipassagecreator.constant.PromptConstant;
 import com.zkx.aipassagecreator.exception.BusinessException;
 import com.zkx.aipassagecreator.exception.ErrorCode;
@@ -24,6 +26,7 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -72,6 +75,9 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
 
     @Resource
     private ChatClient.Builder chatClientBuilder;
+
+    @Resource
+    private SseEmitterManager sseEmitterManager;
 
     private final Map<String, ArticleTaskContext> contextMap = new ConcurrentHashMap<>();
 
@@ -127,6 +133,10 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
     public void confirmTitle(ArticleConfirmTitleRequest request, Long userId) {
         String taskId = request.getTaskId();
         ArticleTaskContext ctx = getContext(taskId, userId);
+        // 幂等防重：防止重复点击"确认标题"导致大纲被重复生成
+        if (!ctx.markOutlineStarted()) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "大纲正在生成中，请勿重复操作");
+        }
         ctx.setSelectedMainTitle(request.getSelectedMainTitle());
         ctx.setSelectedSubTitle(request.getSelectedSubTitle());
         ctx.setUserDescription(request.getUserDescription());
@@ -161,6 +171,10 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
     public void confirmOutline(ArticleConfirmOutlineRequest request, Long userId) {
         String taskId = request.getTaskId();
         ArticleTaskContext ctx = getContext(taskId, userId);
+        // 幂等防重：防止重复点击"确认大纲"导致正文链路被重复执行
+        if (!ctx.markContentStarted()) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "正文正在生成中，请勿重复操作");
+        }
         // 保存用户编辑后的大纲
         List<OutlineItem> outline = request.getOutline().stream().map(section -> {
             OutlineItem item = new OutlineItem();
@@ -226,6 +240,7 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         articleMapper.update(article);
         ArticleTaskContext ctx = contextMap.get(taskId);
         if (ctx != null) {
+            ctx.touch();
             ctx.setOutline(newOutline.stream().map(s -> {
                 OutlineItem item = new OutlineItem();
                 item.setSection(s.getSection());
@@ -278,7 +293,30 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         if (!ctx.getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限操作该任务");
         }
+        // 惰性过期检查：用户长时间未操作（超过任务总超时时间）视为任务过期，清理并提示
+        if (System.currentTimeMillis() - ctx.getLastActiveTime() > ArticleConstant.TASK_TIMEOUT_MS) {
+            log.info("[{}] 任务因长时间未操作而过期", taskId);
+            contextMap.remove(taskId);
+            sseEmitterManager.complete(taskId);
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "任务已过期，请重新创建");
+        }
+        ctx.touch();
         return ctx;
+    }
+
+    /**
+     * 定时清理过期任务上下文（防止用户长时间不操作导致的内存泄漏，默认 5 分钟扫描一次）
+     */
+    @Scheduled(fixedDelay = 5 * 60 * 1000L)
+    public void cleanExpiredContexts() {
+        long now = System.currentTimeMillis();
+        contextMap.forEach((taskId, ctx) -> {
+            if (now - ctx.getLastActiveTime() > ArticleConstant.TASK_TIMEOUT_MS) {
+                log.info("[{}] 定时清理过期任务上下文", taskId);
+                contextMap.remove(taskId);
+                sseEmitterManager.complete(taskId);
+            }
+        });
     }
 
     private Article getArticleByTaskId(String taskId) {

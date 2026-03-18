@@ -6,7 +6,6 @@ import com.zkx.aipassagecreator.common.BaseResponse;
 import com.zkx.aipassagecreator.common.DeleteRequest;
 import com.zkx.aipassagecreator.common.ResultUtils;
 import com.zkx.aipassagecreator.config.SseEmitterManager;
-import com.zkx.aipassagecreator.constant.ArticleConstant;
 import com.zkx.aipassagecreator.exception.ErrorCode;
 import com.zkx.aipassagecreator.exception.ThrowUtils;
 import com.zkx.aipassagecreator.model.dto.*;
@@ -95,7 +94,9 @@ public class ArticleController {
     @GetMapping("/progress/{taskId}")
     public SseEmitter getProgress(@PathVariable String taskId) {
         ThrowUtils.throwIf(taskId == null || taskId.isBlank(), ErrorCode.PARAMS_ERROR);
-        SseEmitter emitter = new SseEmitter(ArticleConstant.TASK_TIMEOUT_MS);
+        // 不设置超时：连接生命周期交给任务上下文过期清理控制，
+        // 避免用户等待确认期间（超过固定超时）连接被服务端提前掐断导致进度丢失。
+        SseEmitter emitter = new SseEmitter(0L);
         sseEmitterManager.register(taskId, emitter);
         // 连接结束/超时/异常时清理
         emitter.onCompletion(() -> sseEmitterManager.remove(taskId));

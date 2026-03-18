@@ -637,40 +637,41 @@ interface OutlineItem {
   section: number
 }
 
-// 解析大纲 JSON（格式为 { "sections": [...] }）
+// 规范化大纲条目（流式解析时 points 可能尚未闭合，兜底为空数组，避免模板渲染报错）
+const normalizeOutlineItem = (item: any): OutlineItem => ({
+  title: item?.title ?? '',
+  points: Array.isArray(item?.points) ? item.points : [],
+  section: item?.section ?? 0,
+})
+
+// 解析大纲 JSON：后端按 prompt 输出纯数组 [{"section":1,"title":"...","points":[...]}]，
+// 同时兼容 {"sections":[...]} 包装结构；流式过程中提取累积文本里已完整闭合的章节。
 const parsedOutline = computed<OutlineItem[]>(() => {
   if (!outlineRaw.value) return []
 
   const str = outlineRaw.value.trim()
 
-  // 尝试解析完整的 JSON
+  // 1. 累积文本恰好是完整 JSON 时直接解析
   try {
     const parsed = JSON.parse(str)
+    if (Array.isArray(parsed)) {
+      return parsed.map(normalizeOutlineItem)
+    }
     if (parsed && Array.isArray(parsed.sections)) {
-      return parsed.sections
+      return parsed.sections.map(normalizeOutlineItem)
     }
     return []
   } catch {
-    // JSON 不完整时，尝试解析已完成的部分
+    // 2. JSON 尚未闭合（流式中）：提取累积文本里最后一个完整的对象数组
     try {
-      // 找到最后一个完整的 section 对象 }
-      // 格式: { "sections": [ {...}, {...} ] }
-      const sectionsMatch = str.match(/"sections"\s*:\s*\[/)
-      if (!sectionsMatch) return []
-
-      const sectionsStart = str.indexOf('[', sectionsMatch.index)
-      if (sectionsStart === -1) return []
-
-      // 从 sections 数组开始，找到最后一个完整的 }
-      const afterStart = str.substring(sectionsStart)
-      const lastBrace = afterStart.lastIndexOf('}')
-
-      if (lastBrace > 0) {
-        const partialArray = afterStart.substring(0, lastBrace + 1) + ']'
-        const parsed = JSON.parse(partialArray)
-        if (Array.isArray(parsed)) {
-          return parsed
-        }
+      const start = str.indexOf('[')
+      if (start === -1) return []
+      const tail = str.substring(start)
+      const lastBrace = tail.lastIndexOf('}')
+      if (lastBrace <= 0) return []
+      const parsed = JSON.parse(tail.substring(0, lastBrace + 1) + ']')
+      if (Array.isArray(parsed)) {
+        return parsed.map(normalizeOutlineItem)
       }
       return []
     } catch {
@@ -736,6 +737,11 @@ const startCreate = async () => {
       style: selectedStyle.value || undefined,
       enabledImageMethods: selectedImageMethods.value.length > 0 ? selectedImageMethods.value : undefined
     })
+    if (res.data.code !== 0) {
+      message.error(res.data.message || '创建任务失败')
+      isCreating.value = false
+      return
+    }
     const newTaskId = res.data.data
     if (!newTaskId) {
       throw new Error('创建任务失败：未返回任务ID')
@@ -811,6 +817,8 @@ const handleSSEMessage = (msg: SSEMessage) => {
       // 大纲生成完成，切换到编辑大纲阶段
       currentPhase.value = 'OUTLINE_EDITING'
       outline.value = msg.outline || []
+      // 同步流式区为完整大纲，保证编辑/正文阶段展示一致
+      outlineRaw.value = JSON.stringify(msg.outline || [])
       isCreating.value = false
       isOutlineStreaming.value = false
       addLog('大纲生成完成，等待确认', 'success')
@@ -885,23 +893,49 @@ const handleSSEMessage = (msg: SSEMessage) => {
   }
 }
 
+// 判断错误是否属于任务过期/不存在（后端 getContext 抛 NOT_FOUND 时提示）
+const isTaskExpired = (msg?: string) => /过期|不存在/.test(msg || '')
+
+// 任务过期处理：提示并回到输入阶段
+const handleTaskExpired = () => {
+  message.error('任务已过期或已失效，请重新创建')
+  closeSSE(eventSource)
+  eventSource = null
+  resetCreate()
+}
+
 // 确认标题
 const handleConfirmTitle = async (data: {mainTitle: string, subTitle: string, userDescription: string}) => {
   confirmLoading.value = true
   try {
-    await confirmTitle({
+    const res = await confirmTitle({
       taskId: taskId.value,
       selectedMainTitle: data.mainTitle,
       selectedSubTitle: data.subTitle,
       userDescription: data.userDescription
     })
+    if (res.data.code !== 0) {
+      if (isTaskExpired(res.data.message)) {
+        handleTaskExpired()
+        return
+      }
+      message.warning(res.data.message || '确认标题失败')
+      return
+    }
     // 保存标题信息，用于大纲生成阶段展示
     article.value.mainTitle = data.mainTitle
     article.value.subTitle = data.subTitle
-    // 不直接切换阶段，等待 SSE 消息 OUTLINE_GENERATED
-    message.success('标题已确认，正在生成大纲...')
+    // 乐观切换到大纲生成阶段：立即隐藏确认按钮，避免等待 SSE 期间重复点击
+    outlineRaw.value = ''
+    currentPhase.value = 'OUTLINE_GENERATING'
+    isCreating.value = true
+    addLog('标题已确认，开始生成大纲...', 'info')
   } catch (error) {
     const err = error as Error
+    if (isTaskExpired(err.message)) {
+      handleTaskExpired()
+      return
+    }
     message.error(err.message || '确认标题失败')
   } finally {
     confirmLoading.value = false
@@ -912,16 +946,31 @@ const handleConfirmTitle = async (data: {mainTitle: string, subTitle: string, us
 const handleConfirmOutline = async (outlineData: Array<{section: number, title: string, points: string[]}>) => {
   confirmLoading.value = true
   try {
-    await confirmOutline({
+    const res = await confirmOutline({
       taskId: taskId.value,
       outline: outlineData
     })
+    if (res.data.code !== 0) {
+      if (isTaskExpired(res.data.message)) {
+        handleTaskExpired()
+        return
+      }
+      message.warning(res.data.message || '确认大纲失败')
+      return
+    }
     // 更新 outlineRaw 为用户修改后的大纲，确保 CONTENT_GENERATING 阶段展示正确的大纲
     outlineRaw.value = JSON.stringify({ sections: outlineData })
-    // 不直接切换阶段，等待后端开始生成正文并推送 AGENT3_STREAMING
-    message.success('大纲已确认，正在生成正文...')
+    // 乐观切换到正文生成阶段，避免等待 SSE 期间重复点击
+    currentPhase.value = 'CONTENT_GENERATING'
+    currentStep.value = 2
+    isCreating.value = true
+    addLog('大纲已确认，开始生成正文...', 'info')
   } catch (error) {
     const err = error as Error
+    if (isTaskExpired(err.message)) {
+      handleTaskExpired()
+      return
+    }
     message.error(err.message || '确认大纲失败')
   } finally {
     confirmLoading.value = false
@@ -931,7 +980,12 @@ const handleConfirmOutline = async (outlineData: Array<{section: number, title: 
 // 处理 SSE 错误
 const handleSSEError = (error: Event) => {
   console.error('SSE错误:', error)
-  message.error('连接失败,请重试')
+  // 任务已完成时忽略断开事件
+  if (currentPhase.value === 'COMPLETED') {
+    return
+  }
+  // 服务端关闭连接（任务过期清理）或网络异常
+  message.warning('实时连接已断开，若长时间未操作任务可能已过期，请刷新页面继续或重新创建')
   isCreating.value = false
 }
 
