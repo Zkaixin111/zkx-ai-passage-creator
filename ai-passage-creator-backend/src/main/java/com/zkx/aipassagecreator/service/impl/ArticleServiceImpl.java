@@ -52,6 +52,8 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     public Page<ArticleVO> listArticle(ArticleQueryRequest request, Long userId, boolean isAdmin) {
         QueryWrapper queryWrapper = new QueryWrapper();
+        // 排除逻辑删除的文章（防御性过滤，确保已删除文章不出现在列表）
+        queryWrapper.eq("isDelete", 0);
         // 非管理员只能看自己的文章
         if (!isAdmin) {
             queryWrapper.eq("userId", userId);

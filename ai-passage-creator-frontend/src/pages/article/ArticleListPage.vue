@@ -331,7 +331,12 @@ const exportArticle = async (record: API.ArticleVO) => {
 // 删除文章
 const deleteArticle = async (record: API.ArticleVO) => {
   try {
-    await deleteArticleApi({ id: record.id })
+    const res = await deleteArticleApi({ id: record.id })
+    // 显式检查业务 code（axios 拦截器只在未登录/网络异常时 reject）
+    if (res.data.code !== 0) {
+      message.error(res.data.message || '删除失败')
+      return
+    }
     message.success('删除成功')
     loadData()
   } catch (error) {
