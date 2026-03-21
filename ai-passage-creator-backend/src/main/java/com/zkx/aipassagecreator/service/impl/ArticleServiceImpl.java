@@ -3,6 +3,7 @@ package com.zkx.aipassagecreator.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mybatisflex.core.logicdelete.LogicDeleteManager;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.zkx.aipassagecreator.exception.BusinessException;
@@ -84,12 +85,17 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public boolean deleteArticle(Long id, Long userId, boolean isAdmin) {
-        Article article = articleMapper.selectOneById(id);
+        // 绕过逻辑删除过滤查询，兼容已逻辑删除的文章（否则已删除文章再次删除会误报"文章不存在"）
+        Article article = LogicDeleteManager.execWithoutLogicDelete(() -> articleMapper.selectOneById(id));
         if (article == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "文章不存在");
         }
         if (!isAdmin && !article.getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限删除该文章");
+        }
+        // 已逻辑删除：幂等返回成功（列表已过滤 isDelete=0，前端刷新后即消失）
+        if (article.getIsDelete() != null && article.getIsDelete() == 1) {
+            return true;
         }
         // 逻辑删除（@Column(isLogicDelete = true) 自动处理）
         boolean result = articleMapper.deleteById(id) > 0;
