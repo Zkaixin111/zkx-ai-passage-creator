@@ -307,8 +307,8 @@ const doReset = () => {
   fetchData()
 }
 
-// 删除
-const doDelete = async (id: number) => {
+// 删除（雪花 ID 为字符串）
+const doDelete = async (id: string) => {
   if (!id) return
   try {
     const res = await deleteUser(id)
@@ -328,7 +328,7 @@ const modalVisible = ref(false)
 const modalMode = ref<'add' | 'edit'>('add')
 const modalSubmitting = ref(false)
 const modalFormRef = ref<FormInstance>()
-const editingId = ref<number>()
+const editingId = ref<string>()
 
 const modalForm = reactive<{
   userAccount?: string

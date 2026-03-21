@@ -122,7 +122,7 @@ export async function listUsers(
  * 删除用户（管理员）
  * DELETE /user/{id}
  */
-export async function deleteUser(id: number, options?: { [key: string]: any }) {
+export async function deleteUser(id: string, options?: { [key: string]: any }) {
   return request<API.BaseResponseBoolean>(`/user/${id}`, {
     method: 'DELETE',
     ...(options || {}),
@@ -134,7 +134,7 @@ export async function deleteUser(id: number, options?: { [key: string]: any }) {
  * PUT /user/{id}
  */
 export async function updateUserByAdmin(
-  id: number,
+  id: string,
   body: API.UserUpdateByAdminRequest,
   options?: { [key: string]: any },
 ) {

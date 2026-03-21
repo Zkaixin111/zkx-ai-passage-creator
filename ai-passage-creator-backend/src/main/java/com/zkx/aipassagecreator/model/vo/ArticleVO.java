@@ -1,5 +1,7 @@
 package com.zkx.aipassagecreator.model.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,7 +13,8 @@ import java.util.List;
 @Data
 public class ArticleVO implements Serializable {
 
-    /** 文章 ID */
+    /** 文章 ID（雪花 ID，序列化为字符串避免前端 JS 精度丢失） */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     /** 任务 ID */

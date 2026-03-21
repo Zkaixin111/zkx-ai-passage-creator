@@ -9,7 +9,7 @@ declare namespace API {
   }
 
   type AgentLog = {
-    id?: number
+    id?: string
     taskId?: string
     agentName?: string
     startTime?: string
@@ -58,7 +58,7 @@ declare namespace API {
   }
 
   type ArticleVO = {
-    id?: number
+    id?: string
     taskId?: string
     userId?: number
     topic?: string
@@ -163,7 +163,7 @@ declare namespace API {
   }
 
   type DeleteRequest = {
-    id?: number
+    id?: string
   }
 
   type getArticleParams = {
@@ -188,7 +188,7 @@ declare namespace API {
   }
 
   type LoginUserVO = {
-    id?: number
+    id?: string
     userAccount?: string
     userName?: string
     userAvatar?: string
@@ -231,7 +231,7 @@ declare namespace API {
   }
 
   type PaymentRecord = {
-    id?: number
+    id?: string
     userId?: number
     stripeSessionId?: string
     stripePaymentIntentId?: string
@@ -273,7 +273,7 @@ declare namespace API {
   }
 
   type User = {
-    id?: number
+    id?: string
     userAccount?: string
     userPassword?: string
     userName?: string
@@ -344,7 +344,7 @@ declare namespace API {
    * 管理员修改用户请求（与后端 UserUpdateByAdminRequest 对齐）
    */
   type UserUpdateByAdminRequest = {
-    id?: number
+    id?: string
     userName?: string
     userAvatar?: string
     userProfile?: string
@@ -355,7 +355,7 @@ declare namespace API {
    * 用户视图对象（管理端用，与后端 UserVO 对齐）
    */
   type UserVO = {
-    id?: number
+    id?: string
     userAccount?: string
     userName?: string
     userAvatar?: string

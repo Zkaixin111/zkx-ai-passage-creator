@@ -1,5 +1,7 @@
 package com.zkx.aipassagecreator.model.vo;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -12,6 +14,8 @@ import java.time.LocalDateTime;
  */
 @Data
 public class LoginUserVO implements Serializable {
+    /** 用户 ID（雪花 ID，序列化为字符串避免前端 JS 精度丢失） */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
     private String userAccount;
     private String userName;
