@@ -19,6 +19,24 @@ public class ArticleConstant {
     /** Picsum 随机图兜底地址（{seed} 占位符保证同关键词可复现） */
     public static final String PICSUM_API_URL = "https://picsum.photos/seed/{seed}/800/600";
 
+    /** Iconify 图标搜索 API */
+    public static final String ICONIFY_SEARCH_URL = "https://api.iconify.design/search?query={query}&limit=1";
+
+    /** Iconify 图标文件地址（{icon} 为图标名，如 mdi:rocket） */
+    public static final String ICONIFY_ICON_URL = "https://api.iconify.design/{icon}.svg?width=800&height=500";
+
+    /** Twemoji 表情包地址（{codepoint} 为 emoji 的 unicode 码点，如 1f604） */
+    public static final String TWEMOJI_URL = "https://api.iconify.design/twemoji/{codepoint}.svg";
+
+    /** Mermaid 在线渲染地址（{code} 为 base64url 编码的 mermaid 代码） */
+    public static final String MERMAID_RENDER_URL = "https://mermaid.ink/img/{code}?type=png";
+
+    /** DashScope 文生图接口（异步任务） */
+    public static final String DASHSCOPE_T2I_URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis";
+
+    /** DashScope 异步任务查询接口 */
+    public static final String DASHSCOPE_TASK_URL = "https://dashscope.aliyuncs.com/api/v1/tasks/{taskId}";
+
     /** 标题方案生成数量 */
     public static final int TITLE_OPTION_COUNT = 3;
 

@@ -12,6 +12,7 @@ import lombok.Getter;
 public enum ImageMethodEnum {
 
     PEXELS("PEXELS", "Pexels 图库"),
+    PICSUM("PICSUM", "Picsum 随机图(兜底)"),
     NANO_BANANA("NANO_BANANA", "AI 生图"),
     MERMAID("MERMAID", "Mermaid 图表"),
     ICONIFY("ICONIFY", "Iconify 图标"),
