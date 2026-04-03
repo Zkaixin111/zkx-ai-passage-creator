@@ -84,7 +84,7 @@
                   <a-checkbox value="PEXELS">Pexels</a-checkbox>
                   <a-tooltip :title="isVip ? '' : '仅限 VIP 会员'">
                     <a-checkbox value="NANO_BANANA" :disabled="!isVip">
-                      Nano Banana
+                      DashScope 通义万相文生图
                       <CrownOutlined v-if="!isVip" class="vip-icon" />
                     </a-checkbox>
                   </a-tooltip>
