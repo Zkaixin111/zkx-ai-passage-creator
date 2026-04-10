@@ -74,37 +74,6 @@
                 </a-radio-group>
               </div>
 
-              <!-- 配图方式选择 -->
-              <div class="image-methods-section">
-                <div class="section-header">
-                  <span class="section-title">配图方式</span>
-                  <span class="section-tip">（不选择表示支持所有方式）</span>
-                </div>
-                <a-checkbox-group v-model:value="selectedImageMethods" class="methods-group">
-                  <a-checkbox value="PEXELS">Pexels</a-checkbox>
-                  <a-tooltip :title="isVip ? '' : '仅限 VIP 会员'">
-                    <a-checkbox value="NANO_BANANA" :disabled="!isVip">
-                      DashScope 通义万相文生图
-                      <CrownOutlined v-if="!isVip" class="vip-icon" />
-                    </a-checkbox>
-                  </a-tooltip>
-                  <a-checkbox value="MERMAID">Mermaid</a-checkbox>
-                  <a-checkbox value="ICONIFY">Iconify</a-checkbox>
-                  <a-checkbox value="EMOJI_PACK">表情包</a-checkbox>
-                  <a-tooltip :title="isVip ? '' : '仅限 VIP 会员'">
-                    <a-checkbox value="SVG_DIAGRAM" :disabled="!isVip">
-                      SVG
-                      <CrownOutlined v-if="!isVip" class="vip-icon" />
-                    </a-checkbox>
-                  </a-tooltip>
-                </a-checkbox-group>
-                <div v-if="!isVip" class="vip-notice">
-                  <CrownOutlined />
-                  <span>AI 生图和 SVG 图表为 VIP 专属功能，</span>
-                  <RouterLink to="/vip" class="upgrade-link">立即升级</RouterLink>
-                </div>
-              </div>
-
               <a-button
                 type="primary"
                 size="large"
@@ -615,7 +584,6 @@ const currentPhase = ref<string>('INPUT')  // INPUT, TITLE_SELECTING, OUTLINE_ED
 // 状态
 const topic = ref('')
 const selectedStyle = ref('')  // 选中的文章风格（空字符串表示默认）
-const selectedImageMethods = ref<string[]>([])  // 选中的配图方式（空数组表示全部）
 const isCreating = ref(false)
 const isCompleted = ref(false)
 const isStreaming = ref(false)
@@ -744,11 +712,10 @@ const startCreate = async () => {
   addLog('开始创建文章任务...', 'info')
 
   try {
-    // 创建任务
+    // 创建任务（配图方式在正文生成后确认，此处不传）
     const res = await createArticle({
       topic: topic.value,
       style: selectedStyle.value || undefined,
-      enabledImageMethods: selectedImageMethods.value.length > 0 ? selectedImageMethods.value : undefined
     })
     if (res.data.code !== 0) {
       message.error(res.data.message || '创建任务失败')
