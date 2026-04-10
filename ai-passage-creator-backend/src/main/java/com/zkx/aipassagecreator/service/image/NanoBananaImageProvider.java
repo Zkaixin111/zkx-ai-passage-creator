@@ -85,7 +85,8 @@ public class NanoBananaImageProvider implements ImageProvider {
         ObjectNode body = OBJECT_MAPPER.createObjectNode();
         body.put("model", model);
         body.putObject("input").put("prompt", StrUtil.maxLength(prompt, 1000));
-        body.putObject("parameters").put("size", "1024*1024").put("n", 1);
+        // 1280*720 为 16:9 横图（通义万相支持的横图尺寸）
+        body.putObject("parameters").put("size", "1280*720").put("n", 1);
 
         String resp = HttpRequest.post(ArticleConstant.DASHSCOPE_T2I_URL)
                 .header("Authorization", "Bearer " + apiKey)

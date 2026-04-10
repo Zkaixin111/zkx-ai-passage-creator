@@ -38,7 +38,9 @@ public class PexelsImageSearchService implements ImageSearchService {
         }
         try {
             String encodedQuery = URLEncoder.encode(keywords == null ? "" : keywords, StandardCharsets.UTF_8);
-            String url = ArticleConstant.PEXELS_API_URL + "?query=" + encodedQuery + "&per_page=" + perPage;
+            // orientation=landscape 强制只返回横图（宽 > 高）
+            String url = ArticleConstant.PEXELS_API_URL + "?query=" + encodedQuery + "&per_page=" + perPage
+                    + "&orientation=landscape";
             String body = HttpRequest.get(url)
                     .header("Authorization", apiKey)
                     .timeout(10_000)

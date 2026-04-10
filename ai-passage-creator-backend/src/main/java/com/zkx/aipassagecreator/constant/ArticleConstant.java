@@ -25,11 +25,11 @@ public class ArticleConstant {
     /** Iconify 图标文件地址（{icon} 为图标名，如 mdi:rocket） */
     public static final String ICONIFY_ICON_URL = "https://api.iconify.design/{icon}.svg?width=800&height=500";
 
-    /** Twemoji 表情包地址（{codepoint} 为 emoji 的 unicode 码点，如 1f604） */
-    public static final String TWEMOJI_URL = "https://api.iconify.design/twemoji/{codepoint}.svg";
+    /** Twemoji 表情包地址（{codepoint} 为 emoji 的 unicode 码点，如 1f604；强制横图尺寸） */
+    public static final String TWEMOJI_URL = "https://api.iconify.design/twemoji/{codepoint}.svg?width=800&height=500";
 
-    /** Mermaid 在线渲染地址（{code} 为 base64url 编码的 mermaid 代码） */
-    public static final String MERMAID_RENDER_URL = "https://mermaid.ink/img/{code}?type=png";
+    /** Mermaid 在线渲染地址（{code} 为 base64url 编码的 mermaid 代码；强制横图尺寸） */
+    public static final String MERMAID_RENDER_URL = "https://mermaid.ink/img/{code}?type=png&width=800&height=500";
 
     /** DashScope 文生图接口（异步任务） */
     public static final String DASHSCOPE_T2I_URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis";
