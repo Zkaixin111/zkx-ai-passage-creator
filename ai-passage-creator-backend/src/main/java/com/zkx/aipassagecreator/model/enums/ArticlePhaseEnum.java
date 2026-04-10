@@ -13,6 +13,10 @@ public enum ArticlePhaseEnum {
     OUTLINE_GENERATING("OUTLINE_GENERATING", "大纲生成中"),
     OUTLINE_EDITING("OUTLINE_EDITING", "大纲编辑"),
     CONTENT_GENERATING("CONTENT_GENERATING", "正文生成中"),
+    /** 正文完成，等待用户选择是否配图 */
+    CONTENT_CONFIRMING("CONTENT_CONFIRMING", "配图选择"),
+    /** 配图/图文合成进行中 */
+    IMAGE_GENERATING("IMAGE_GENERATING", "配图生成中"),
     COMPLETED("COMPLETED", "已完成"),
     FAILED("FAILED", "失败");
 

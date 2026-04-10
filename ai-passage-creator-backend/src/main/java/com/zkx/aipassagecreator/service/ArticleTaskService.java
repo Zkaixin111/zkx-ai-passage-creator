@@ -1,6 +1,7 @@
 package com.zkx.aipassagecreator.service;
 
 import com.zkx.aipassagecreator.model.dto.ArticleAiModifyOutlineRequest;
+import com.zkx.aipassagecreator.model.dto.ArticleConfirmContentRequest;
 import com.zkx.aipassagecreator.model.dto.ArticleConfirmOutlineRequest;
 import com.zkx.aipassagecreator.model.dto.ArticleConfirmTitleRequest;
 import com.zkx.aipassagecreator.model.dto.ArticleCreateRequest;
@@ -26,9 +27,15 @@ public interface ArticleTaskService {
     void confirmTitle(ArticleConfirmTitleRequest request, Long userId);
 
     /**
-     * 确认大纲，异步启动智能体3-6（正文→配图→合成）
+     * 确认大纲，异步启动智能体3（生成正文），正文完成后暂停等待用户确认是否配图
      */
     void confirmOutline(ArticleConfirmOutlineRequest request, Long userId);
+
+    /**
+     * 确认正文后的配图方案：生成配图则启动智能体4-6（配图分析→配图→合成），
+     * 不生成则直接合成（智能体6）
+     */
+    void confirmContent(ArticleConfirmContentRequest request, Long userId);
 
     /**
      * AI 修改大纲（同步返回新大纲）

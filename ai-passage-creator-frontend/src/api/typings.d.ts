@@ -35,6 +35,12 @@ declare namespace API {
     outline?: OutlineSection[]
   }
 
+  type ArticleConfirmContentRequest = {
+    taskId?: string
+    generateImages?: boolean
+    enabledImageMethods?: string[]
+  }
+
   type ArticleConfirmTitleRequest = {
     taskId?: string
     selectedMainTitle?: string

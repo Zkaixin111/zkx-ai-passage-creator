@@ -186,6 +186,18 @@
             @confirm="handleConfirmOutline"
           />
 
+          <!-- 正文完成，配图确认阶段 -->
+          <div v-else-if="currentPhase === 'CONTENT_CONFIRMING'" key="content-confirming" class="creating-state">
+            <div v-if="article.mainTitle" class="preview-header">
+              <h1 class="article-title">{{ article.mainTitle }}</h1>
+              <p class="article-subtitle">{{ article.subTitle }}</p>
+            </div>
+            <div v-if="article.content" class="content-preview">
+              <div v-html="markdownToHtml(article.content)" class="markdown-body"></div>
+            </div>
+            <ContentConfirmStage :task-id="taskId" @confirm="handleConfirmContent" />
+          </div>
+
           <!-- 正文生成阶段 -->
           <div v-else-if="currentPhase === 'CONTENT_GENERATING'" key="content-generating" class="creating-state">
           <!-- 标题预览 -->
@@ -559,12 +571,13 @@ import {
   CrownOutlined,
   FileTextOutlined
 } from '@ant-design/icons-vue'
-import { createArticle, confirmTitle, confirmOutline } from '@/api/articleController'
+import { createArticle, confirmTitle, confirmOutline, confirmContent } from '@/api/articleController'
 import { connectSSE, closeSSE, type SSEMessage } from '@/utils/sse'
 import { isAdmin as checkIsAdmin, isVip as checkIsVip, hasQuota as checkHasQuota } from '@/utils/permission'
 import { marked } from 'marked'
 import TitleSelectingStage from './components/TitleSelectingStage.vue'
 import OutlineEditingStage from './components/OutlineEditingStage.vue'
+import ContentConfirmStage from './components/ContentConfirmStage.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -840,10 +853,11 @@ const handleSSEMessage = (msg: SSEMessage) => {
       break
 
     case 'AGENT3_COMPLETE':
-      // 正文完成，进入配图分析步骤
+      // 正文完成，进入配图确认阶段（用户选择是否生成图片）
       isStreaming.value = false
       currentStep.value = 3
-      addLog('正文生成完成', 'success')
+      currentPhase.value = 'CONTENT_CONFIRMING'
+      addLog('正文生成完成，等待确认配图方案', 'success')
       break
 
     case 'AGENT4_COMPLETE':
@@ -972,6 +986,46 @@ const handleConfirmOutline = async (outlineData: Array<{section: number, title: 
       return
     }
     message.error(err.message || '确认大纲失败')
+  } finally {
+    confirmLoading.value = false
+  }
+}
+
+// 确认配图方案（正文完成后用户选择是否生成图片及类型）
+const handleConfirmContent = async (data: {generateImages: boolean, enabledImageMethods: string[]}) => {
+  confirmLoading.value = true
+  try {
+    const res = await confirmContent({
+      taskId: taskId.value,
+      generateImages: data.generateImages,
+      enabledImageMethods: data.enabledImageMethods
+    })
+    if (res.data.code !== 0) {
+      if (isTaskExpired(res.data.message)) {
+        handleTaskExpired()
+        return
+      }
+      message.warning(res.data.message || '操作失败')
+      return
+    }
+    if (data.generateImages) {
+      message.success('开始生成配图...')
+      addLog(`已确认生成配图（${data.enabledImageMethods.join('、') || '默认'}）`, 'info')
+    } else {
+      message.success('正在合成纯文字文章...')
+      addLog('已确认不生成配图，开始合成', 'info')
+    }
+    // 回到正文展示阶段，等待 SSE 推送配图/合成进度
+    currentPhase.value = 'CONTENT_GENERATING'
+    currentStep.value = 3
+    isCreating.value = true
+  } catch (error) {
+    const err = error as Error
+    if (isTaskExpired(err.message)) {
+      handleTaskExpired()
+      return
+    }
+    message.error(err.message || '操作失败')
   } finally {
     confirmLoading.value = false
   }

@@ -87,6 +87,9 @@ public class ArticleTaskContext {
     /** 正文生成任务是否已启动（CAS 防重，防止重复确认触发重复执行） */
     private final AtomicBoolean contentTaskStarted = new AtomicBoolean(false);
 
+    /** 配图/合成任务是否已启动（CAS 防重，防止重复确认配图触发重复执行） */
+    private final AtomicBoolean imageTaskStarted = new AtomicBoolean(false);
+
     /** 最后活动时间戳（用于任务过期检测，毫秒） */
     private volatile long lastActiveTime = System.currentTimeMillis();
 
@@ -102,6 +105,13 @@ public class ArticleTaskContext {
      */
     public boolean markContentStarted() {
         return contentTaskStarted.compareAndSet(false, true);
+    }
+
+    /**
+     * 标记配图/合成已启动；返回 true 表示首次启动成功，false 表示已启动过（应拒绝重复操作）
+     */
+    public boolean markImageTaskStarted() {
+        return imageTaskStarted.compareAndSet(false, true);
     }
 
     /**

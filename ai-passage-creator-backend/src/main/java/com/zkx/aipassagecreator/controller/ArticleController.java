@@ -90,6 +90,18 @@ public class ArticleController {
         return ResultUtils.success(newOutline);
     }
 
+    @AuthCheck
+    @Operation(summary = "确认正文后的配图方案（是否生成配图及配图方式）")
+    @PostMapping("/confirm-content")
+    public BaseResponse<Void> confirmContent(@RequestBody ArticleConfirmContentRequest request,
+                                             HttpServletRequest httpRequest) {
+        ThrowUtils.throwIf(request == null || request.getTaskId() == null || request.getTaskId().isBlank(),
+                ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(httpRequest);
+        articleTaskService.confirmContent(request, loginUser.getId());
+        return ResultUtils.success(null);
+    }
+
     @Operation(summary = "获取文章生成进度（SSE 长连接）")
     @GetMapping("/progress/{taskId}")
     public SseEmitter getProgress(@PathVariable String taskId) {

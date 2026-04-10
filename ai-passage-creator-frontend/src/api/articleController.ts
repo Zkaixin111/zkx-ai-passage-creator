@@ -46,6 +46,21 @@ export async function confirmOutline(
   })
 }
 
+/** 确认正文后的配图方案 POST /article/confirm-content */
+export async function confirmContent(
+  body: API.ArticleConfirmContentRequest,
+  options?: { [key: string]: any }
+) {
+  return request<API.BaseResponseVoid>('/article/confirm-content', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
+
 /** 确认标题并输入补充描述 POST /article/confirm-title */
 export async function confirmTitle(
   body: API.ArticleConfirmTitleRequest,

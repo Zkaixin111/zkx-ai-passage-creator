@@ -12,6 +12,7 @@ import com.zkx.aipassagecreator.exception.ErrorCode;
 import com.zkx.aipassagecreator.mapper.ArticleMapper;
 import com.zkx.aipassagecreator.model.context.ArticleTaskContext;
 import com.zkx.aipassagecreator.model.dto.ArticleAiModifyOutlineRequest;
+import com.zkx.aipassagecreator.model.dto.ArticleConfirmContentRequest;
 import com.zkx.aipassagecreator.model.dto.ArticleConfirmOutlineRequest;
 import com.zkx.aipassagecreator.model.dto.ArticleConfirmTitleRequest;
 import com.zkx.aipassagecreator.model.dto.ArticleCreateRequest;
@@ -190,20 +191,58 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         article.setPhase(ArticlePhaseEnum.CONTENT_GENERATING.getValue());
         articleMapper.update(article);
 
-        // 异步启动智能体3-6（正文→配图分析→配图→合成）
+        // 异步启动智能体3（生成正文），正文完成后暂停等待用户确认是否配图
         taskExecutor.execute(() -> {
             try {
                 contentAgent.execute(ctx);
                 if (ctx.isCancelled()) {
                     return;
                 }
-                imageAnalyzeAgent.execute(ctx);
-                if (ctx.isCancelled()) {
-                    return;
-                }
-                imageFetchAgent.execute(ctx);
-                if (ctx.isCancelled()) {
-                    return;
+                // 持久化正文，暂停等待用户确认配图方案（confirmContent 再继续链路）
+                Article art = getArticleByTaskId(taskId);
+                art.setContent(ctx.getContent().toString());
+                art.setPhase(ArticlePhaseEnum.CONTENT_CONFIRMING.getValue());
+                art.setUpdateTime(LocalDateTime.now());
+                articleMapper.update(art);
+                // 注意：此处不 remove contextMap，由 confirmContent 的异步任务完成后清理
+            } catch (Exception e) {
+                log.error("确认大纲后智能体3执行异常: {}", e.getMessage(), e);
+                markFailed(taskId, "正文生成失败");
+            }
+        });
+    }
+
+    @Override
+    public void confirmContent(ArticleConfirmContentRequest request, Long userId) {
+        String taskId = request.getTaskId();
+        ArticleTaskContext ctx = getContext(taskId, userId);
+        // 幂等防重：防止重复确认配图导致链路被重复执行
+        if (!ctx.markImageTaskStarted()) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "正在处理中，请勿重复操作");
+        }
+        boolean generateImages = Boolean.TRUE.equals(request.getGenerateImages());
+        // 记录用户选择的配图方式（不生成图片时传空数组，ImageFetchAgent 默认 Pexels 兜底但不会执行）
+        ctx.setEnabledImageMethods(generateImages ? request.getEnabledImageMethods() : List.of());
+
+        Article article = getArticleByTaskId(taskId);
+        if (generateImages) {
+            article.setPhase(ArticlePhaseEnum.IMAGE_GENERATING.getValue());
+            article.setUpdateTime(LocalDateTime.now());
+            articleMapper.update(article);
+        }
+
+        // 异步启动智能体4-6（配图分析→配图→合成）；不生成图片则直接合成
+        taskExecutor.execute(() -> {
+            try {
+                if (generateImages) {
+                    imageAnalyzeAgent.execute(ctx);
+                    if (ctx.isCancelled()) {
+                        return;
+                    }
+                    imageFetchAgent.execute(ctx);
+                    if (ctx.isCancelled()) {
+                        return;
+                    }
                 }
                 mergeAgent.execute(ctx);
                 if (ctx.isCancelled()) {
@@ -211,7 +250,7 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
                 }
                 persistCompleted(article, ctx);
             } catch (Exception e) {
-                log.error("确认大纲后智能体链路执行异常: {}", e.getMessage(), e);
+                log.error("配图/合成链路执行异常: {}", e.getMessage(), e);
                 markFailed(taskId, "内容生成失败");
             } finally {
                 contextMap.remove(taskId);
