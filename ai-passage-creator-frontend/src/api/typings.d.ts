@@ -200,8 +200,9 @@ declare namespace API {
     userAvatar?: string
     userProfile?: string
     userRole?: string
+    vipType?: string
+    isVip?: boolean
     quota?: number
-    vipTime?: string
     createTime?: string
     updateTime?: string
   }
@@ -286,8 +287,8 @@ declare namespace API {
     userAvatar?: string
     userProfile?: string
     userRole?: string
+    vipType?: string
     quota?: number
-    vipTime?: string
     editTime?: string
     createTime?: string
     updateTime?: string

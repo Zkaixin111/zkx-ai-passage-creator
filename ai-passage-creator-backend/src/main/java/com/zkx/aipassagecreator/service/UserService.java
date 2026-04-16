@@ -69,4 +69,14 @@ public interface UserService extends IService<User> {
      * 判断当前用户是否为管理员
      */
     boolean isAdmin(HttpServletRequest request);
+
+    /**
+     * 判断用户是否为 VIP 会员（PERMANENT 永久，或限时且未过期）
+     */
+    boolean isVip(User user);
+
+    /**
+     * User 实体转脱敏视图（含真实配额与会员信息）
+     */
+    LoginUserVO getUserVO(User user);
 }

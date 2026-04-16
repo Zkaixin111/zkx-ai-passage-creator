@@ -60,18 +60,7 @@ public class UserController {
     @GetMapping("/current")
     public BaseResponse<LoginUserVO> getCurrentUser(HttpServletRequest request) {
         User user = userService.getLoginUser(request);
-        LoginUserVO loginUserVO = new LoginUserVO();
-        loginUserVO.setId(user.getId());
-        loginUserVO.setUserAccount(user.getUserAccount());
-        loginUserVO.setUserName(user.getUserName());
-        loginUserVO.setUserAvatar(user.getUserAvatar());
-        loginUserVO.setUserProfile(user.getUserProfile());
-        loginUserVO.setUserRole(user.getUserRole());
-        // MVP 阶段不做配额限制，返回大值使前端 hasQuota 放行
-        loginUserVO.setQuota(Long.MAX_VALUE);
-        loginUserVO.setCreateTime(user.getCreateTime());
-        loginUserVO.setUpdateTime(user.getUpdateTime());
-        return ResultUtils.success(loginUserVO);
+        return ResultUtils.success(userService.getUserVO(user));
     }
 
     @Operation(summary = "用户注销")

@@ -22,7 +22,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 import static com.zkx.aipassagecreator.constant.UserConstant.ADMIN_ROLE;
+import static com.zkx.aipassagecreator.constant.UserConstant.DEFAULT_QUOTA_TOTAL;
 import static com.zkx.aipassagecreator.constant.UserConstant.USER_LOGIN_STATE;
+import static com.zkx.aipassagecreator.constant.UserConstant.VIP_TYPE_PERMANENT;
 
 /**
  * 用户服务实现
@@ -391,9 +393,28 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     // ==================== 私有辅助方法 ====================
 
     /**
-     * User 实体转 LoginUserVO（脱敏视图）
+     * 判断用户是否为 VIP 会员（PERMANENT 永久，或限时且未过期；管理员视为 VIP）
      */
-    private LoginUserVO getUserVO(User user) {
+    @Override
+    public boolean isVip(User user) {
+        if (user == null) {
+            return false;
+        }
+        if (ADMIN_ROLE.equals(user.getUserRole())) {
+            return true;
+        }
+        if (!VIP_TYPE_PERMANENT.equals(user.getVipType())) {
+            return false;
+        }
+        // 永久会员（vipExpireTime 为 NULL）长期有效；限时会员需未过期
+        return user.getVipExpireTime() == null || user.getVipExpireTime().isAfter(LocalDateTime.now());
+    }
+
+    /**
+     * User 实体转 LoginUserVO（脱敏视图，含真实配额与会员信息）
+     */
+    @Override
+    public LoginUserVO getUserVO(User user) {
         LoginUserVO loginUserVO = new LoginUserVO();
         loginUserVO.setId(user.getId());
         loginUserVO.setUserAccount(user.getUserAccount());
@@ -401,8 +422,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         loginUserVO.setUserAvatar(user.getUserAvatar());
         loginUserVO.setUserProfile(user.getUserProfile());
         loginUserVO.setUserRole(user.getUserRole());
-        // MVP 阶段不做配额限制，返回大值使前端 hasQuota 放行
-        loginUserVO.setQuota(Long.MAX_VALUE);
+        loginUserVO.setVipType(user.getVipType());
+        loginUserVO.setIsVip(isVip(user));
+        // 剩余配额：VIP/管理员不限（null）；免费用户 = 总数 - 已用
+        loginUserVO.setQuota(isVip(user)
+                ? null
+                : (long) (Math.max(0, (user.getQuotaTotal() == null ? DEFAULT_QUOTA_TOTAL : user.getQuotaTotal())
+                - (user.getQuotaUsed() == null ? 0 : user.getQuotaUsed()))));
         loginUserVO.setCreateTime(user.getCreateTime());
         loginUserVO.setUpdateTime(user.getUpdateTime());
         return loginUserVO;

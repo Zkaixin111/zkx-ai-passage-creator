@@ -3,6 +3,8 @@ package com.zkx.aipassagecreator.mapper;
 import com.mybatisflex.core.BaseMapper;
 import com.zkx.aipassagecreator.model.entity.User;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Update;
 
 /**
  * 用户数据访问层
@@ -11,4 +13,14 @@ import org.apache.ibatis.annotations.Mapper;
  */
 @Mapper
 public interface UserMapper extends BaseMapper<User> {
+
+    /**
+     * 原子扣减创作配额（仅当仍有剩余额度时扣减成功）
+     * <p>
+     * 并发安全：靠 WHERE quotaUsed &lt; quotaTotal 条件保证不会超扣，
+     * 返回影响行数：1=扣减成功，0=配额已用完。
+     */
+    @Update("UPDATE user SET quotaUsed = quotaUsed + 1, updateTime = NOW() " +
+            "WHERE id = #{userId} AND quotaUsed < quotaTotal")
+    int deductQuota(@Param("userId") Long userId);
 }

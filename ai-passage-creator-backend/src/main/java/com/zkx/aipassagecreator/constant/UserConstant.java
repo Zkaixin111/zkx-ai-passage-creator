@@ -20,4 +20,19 @@ public interface UserConstant {
      * 管理员角色
      */
     String ADMIN_ROLE = "admin";
+
+    /**
+     * 会员类型：免费
+     */
+    String VIP_TYPE_NONE = "NONE";
+
+    /**
+     * 会员类型：永久 VIP
+     */
+    String VIP_TYPE_PERMANENT = "PERMANENT";
+
+    /**
+     * 免费用户默认创作配额（次）
+     */
+    int DEFAULT_QUOTA_TOTAL = 5;
 }

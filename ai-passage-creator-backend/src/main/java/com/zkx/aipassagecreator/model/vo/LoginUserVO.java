@@ -22,7 +22,11 @@ public class LoginUserVO implements Serializable {
     private String userAvatar;
     private String userProfile;
     private String userRole;
-    /** 剩余配额（MVP 阶段返回大值放行，前端 hasQuota 恒为 true） */
+    /** 会员类型：NONE 免费 / PERMANENT 永久 VIP */
+    private String vipType;
+    /** 是否 VIP 会员（含管理员） */
+    private Boolean isVip;
+    /** 剩余创作配额（免费用户=配额总数-已用；VIP/管理员为 null 表示不限） */
     private Long quota;
     private LocalDateTime createTime;
     private LocalDateTime updateTime;

@@ -10,6 +10,7 @@ import com.zkx.aipassagecreator.constant.PromptConstant;
 import com.zkx.aipassagecreator.exception.BusinessException;
 import com.zkx.aipassagecreator.exception.ErrorCode;
 import com.zkx.aipassagecreator.mapper.ArticleMapper;
+import com.zkx.aipassagecreator.mapper.UserMapper;
 import com.zkx.aipassagecreator.model.context.ArticleTaskContext;
 import com.zkx.aipassagecreator.model.dto.ArticleAiModifyOutlineRequest;
 import com.zkx.aipassagecreator.model.dto.ArticleConfirmContentRequest;
@@ -17,12 +18,15 @@ import com.zkx.aipassagecreator.model.dto.ArticleConfirmOutlineRequest;
 import com.zkx.aipassagecreator.model.dto.ArticleConfirmTitleRequest;
 import com.zkx.aipassagecreator.model.dto.ArticleCreateRequest;
 import com.zkx.aipassagecreator.model.entity.Article;
+import com.zkx.aipassagecreator.model.entity.User;
 import com.zkx.aipassagecreator.model.enums.ArticlePhaseEnum;
 import com.zkx.aipassagecreator.model.enums.ArticleStatusEnum;
+import com.zkx.aipassagecreator.model.enums.ImageMethodEnum;
 import com.zkx.aipassagecreator.model.vo.AgentExecutionStats;
 import com.zkx.aipassagecreator.model.vo.OutlineItem;
 import com.zkx.aipassagecreator.model.vo.OutlineSection;
 import com.zkx.aipassagecreator.service.ArticleTaskService;
+import com.zkx.aipassagecreator.service.UserService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -80,12 +84,27 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
     @Resource
     private SseEmitterManager sseEmitterManager;
 
+    @Resource
+    private UserService userService;
+
+    @Resource
+    private UserMapper userMapper;
+
     private final Map<String, ArticleTaskContext> contextMap = new ConcurrentHashMap<>();
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Override
     public String createTask(ArticleCreateRequest request, Long userId) {
+        // 配额校验与扣减：VIP/管理员不限次，免费用户原子扣减（quotaUsed < quotaTotal 防超扣）
+        User user = userService.getById(userId);
+        if (user == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "用户不存在");
+        }
+        if (!userService.isVip(user) && userMapper.deductQuota(userId) == 0) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "创作配额已用完，升级 VIP 可无限次创作");
+        }
+
         String taskId = UUID.randomUUID().toString();
 
         Article article = new Article();
@@ -216,6 +235,12 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
     public void confirmContent(ArticleConfirmContentRequest request, Long userId) {
         String taskId = request.getTaskId();
         ArticleTaskContext ctx = getContext(taskId, userId);
+        // VIP 权限校验：AI 生图(NANO_BANANA)/SVG 图表(SVG_DIAGRAM) 仅限 VIP 会员
+        User vipUser = userService.getById(userId);
+        if (request.getEnabledImageMethods() != null && !userService.isVip(vipUser)
+                && request.getEnabledImageMethods().stream().anyMatch(this::isVipOnlyImageMethod)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "AI 智能生图与 SVG 图表仅限 VIP 会员使用");
+        }
         // 幂等防重：防止重复确认配图导致链路被重复执行
         if (!ctx.markImageTaskStarted()) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "正在处理中，请勿重复操作");
@@ -260,6 +285,11 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
 
     @Override
     public List<OutlineSection> aiModifyOutline(ArticleAiModifyOutlineRequest request, Long userId) {
+        // VIP 权限校验：AI 修改大纲仅限 VIP 会员
+        User vipUser = userService.getById(userId);
+        if (!userService.isVip(vipUser)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "AI 修改大纲仅限 VIP 会员使用");
+        }
         String taskId = request.getTaskId();
         Article article = getArticleByTaskId(taskId);
         if (!article.getUserId().equals(userId)) {
@@ -292,6 +322,14 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
     }
 
     // ==================== 私有辅助 ====================
+
+    /**
+     * 判断是否为仅 VIP 可用的配图方式
+     */
+    private boolean isVipOnlyImageMethod(String method) {
+        return ImageMethodEnum.NANO_BANANA.getValue().equals(method)
+                || ImageMethodEnum.SVG_DIAGRAM.getValue().equals(method);
+    }
 
     /**
      * 获取任务执行统计/日志（供 execution-logs 接口使用）

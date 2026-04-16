@@ -46,6 +46,21 @@ public class User implements Serializable {
     /** 角色：user / admin */
     private String userRole;
 
+    /** 会员类型：NONE 免费 / PERMANENT 永久 VIP（预留 MONTHLY/YEARLY 限时） */
+    private String vipType;
+
+    /** 成为会员时间 */
+    private LocalDateTime vipStartTime;
+
+    /** VIP 到期时间（永久会员为 NULL 表示长期有效） */
+    private LocalDateTime vipExpireTime;
+
+    /** 创作配额总数（免费用户默认 5 次） */
+    private Integer quotaTotal;
+
+    /** 已使用创作配额 */
+    private Integer quotaUsed;
+
     /** 编辑时间 */
     private LocalDateTime editTime;
 
