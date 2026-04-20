@@ -94,15 +94,74 @@
           </div>
         </div>
       </div>
+
+      <!-- 支付弹窗 -->
+      <a-modal
+        :open="payModalVisible"
+        :title="null"
+        :footer="null"
+        :width="380"
+        :closable="payStep !== 'PAYING'"
+        @cancel="handlePayModalCancel"
+        centered
+      >
+        <!-- 选择支付方式 -->
+        <div v-if="payStep === 'SELECT'" class="pay-select">
+          <h3 class="pay-title">升级永久会员</h3>
+          <p class="pay-amount">¥ {{ VIP_PRICE }}</p>
+          <a-radio-group v-model:value="payChannel" class="pay-channel-group">
+            <a-radio value="WECHAT" class="pay-channel">
+              <WechatOutlined style="color: #07C160" />
+              <span>微信支付</span>
+            </a-radio>
+            <a-radio value="ALIPAY" class="pay-channel">
+              <AlipayCircleOutlined style="color: #1677FF" />
+              <span>支付宝</span>
+            </a-radio>
+          </a-radio-group>
+          <a-button
+            type="primary"
+            block
+            size="large"
+            :loading="purchasing"
+            @click="handleConfirmPay"
+            class="pay-confirm-btn"
+          >
+            确认支付
+          </a-button>
+        </div>
+
+        <!-- 支付中：微信二维码 / 支付宝已弹出 -->
+        <div v-else-if="payStep === 'PAYING'" class="pay-paying">
+          <template v-if="payChannel === 'WECHAT'">
+            <img :src="payQrDataUrl" alt="微信支付二维码" class="pay-qrcode" />
+            <p class="pay-hint">请使用微信扫一扫完成支付</p>
+          </template>
+          <template v-else>
+            <a-spin />
+            <p class="pay-hint">支付宝支付页面已在新窗口打开，请完成支付</p>
+          </template>
+          <p class="pay-order">订单号：{{ payOrderNo }}</p>
+          <p class="pay-tip">支付完成后将自动开通会员，请勿关闭此页面</p>
+        </div>
+
+        <!-- 支付成功 -->
+        <div v-else class="pay-success">
+          <CheckCircleFilled class="pay-success-icon" />
+          <h3>开通成功！</h3>
+          <p>欢迎成为永久会员，畅享全部高级功能</p>
+        </div>
+      </a-modal>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { message, Modal } from 'ant-design-vue'
 import {
+  CheckCircleFilled,
   CheckCircleOutlined,
   CrownOutlined,
   SafetyOutlined,
@@ -113,11 +172,14 @@ import {
   EditOutlined,
   StarOutlined,
   GiftOutlined,
-  QuestionCircleOutlined
+  QuestionCircleOutlined,
+  WechatOutlined,
+  AlipayCircleOutlined
 } from '@ant-design/icons-vue'
 import { useLoginUserStore } from '@/stores/loginUser'
-import { createVipPaymentSession } from '@/api/paymentController'
+import { createPay } from '@/api/payController'
 import { isVip as checkIsVip } from '@/utils/permission'
+import QRCode from 'qrcode'
 
 const router = useRouter()
 const route = useRoute()
@@ -126,6 +188,103 @@ const purchasing = ref(false)
 
 // 是否是 VIP（管理员也视为 VIP）
 const isVip = computed(() => checkIsVip(loginUserStore.loginUser))
+
+// ==================== 支付 ====================
+const payModalVisible = ref(false)
+const payChannel = ref('WECHAT')
+const payStep = ref<'SELECT' | 'PAYING' | 'SUCCESS'>('SELECT')
+const payQrDataUrl = ref('')
+const payOrderNo = ref('')
+let payTimer: ReturnType<typeof setInterval> | null = null
+
+const VIP_PRICE = 29.9
+
+// 打开支付弹窗
+const openPayModal = () => {
+  payStep.value = 'SELECT'
+  payQrDataUrl.value = ''
+  payModalVisible.value = true
+}
+
+// 确认支付：调后端下单，微信展示二维码，支付宝弹出支付页
+const handleConfirmPay = async () => {
+  purchasing.value = true
+  try {
+    const res = await createPay({ channel: payChannel.value })
+    if (res.data.code !== 0) {
+      message.error(res.data.message || '下单失败')
+      return
+    }
+    const data = res.data.data
+    if (!data) {
+      message.error('下单失败：无返回数据')
+      return
+    }
+    if (data.status === 'PAID') {
+      message.success('您已是永久会员')
+      await loginUserStore.fetchLoginUser()
+      payModalVisible.value = false
+      return
+    }
+    payOrderNo.value = data.orderNo || ''
+    if (data.payType === 'WECHAT_NATIVE' && data.payUrl) {
+      // 微信：生成二维码
+      payQrDataUrl.value = await QRCode.toDataURL(data.payUrl, { width: 240, margin: 2 })
+      payStep.value = 'PAYING'
+      startPolling()
+    } else if (data.payType === 'ALIPAY_FORM' && data.payUrl) {
+      // 支付宝：新窗口提交表单
+      openAlipayPage(data.payUrl)
+      payStep.value = 'PAYING'
+      startPolling()
+    } else {
+      message.warning('暂不支持该支付方式')
+    }
+  } catch (error) {
+    console.error('下单失败:', error)
+    message.error('下单失败，请稍后重试')
+  } finally {
+    purchasing.value = false
+  }
+}
+
+// 支付宝表单：新窗口渲染并自动提交
+const openAlipayPage = (formHtml: string) => {
+  const win = window.open('', '_blank')
+  if (win) {
+    win.document.write(formHtml)
+    win.document.close()
+  }
+}
+
+// 轮询开通状态（每 3 秒刷新一次用户信息，开通成功后提示）
+const startPolling = () => {
+  stopPolling()
+  payTimer = setInterval(async () => {
+    const ok = await loginUserStore.fetchLoginUser()
+    if (ok && isVip.value) {
+      stopPolling()
+      payStep.value = 'SUCCESS'
+      message.success('开通成功，欢迎成为永久会员！')
+      setTimeout(() => {
+        payModalVisible.value = false
+      }, 1500)
+    }
+  }, 3000)
+}
+
+const stopPolling = () => {
+  if (payTimer) {
+    clearInterval(payTimer)
+    payTimer = null
+  }
+}
+
+// 关闭弹窗时停止轮询
+const handlePayModalCancel = () => {
+  stopPolling()
+  payModalVisible.value = false
+}
 
 // 会员特权列表
 const features = [
@@ -212,8 +371,8 @@ onMounted(async () => {
   }
 })
 
-// 购买处理
-const handlePurchase = async () => {
+// 购买处理：打开支付弹窗（选择微信/支付宝）
+const handlePurchase = () => {
   if (!loginUserStore.loginUser.id) {
     message.warning('请先登录')
     router.push('/user/login')
@@ -225,21 +384,12 @@ const handlePurchase = async () => {
     return
   }
 
-  purchasing.value = true
-  try {
-    const res = await createVipPaymentSession()
-    if (res.data.code === 0 && res.data.data) {
-      window.location.href = res.data.data
-    } else {
-      message.error(res.data.message || '创建支付失败')
-    }
-  } catch (error) {
-    console.error('创建支付失败:', error)
-    message.error('创建支付失败，请稀后重试')
-  } finally {
-    purchasing.value = false
-  }
+  openPayModal()
 }
+
+onUnmounted(() => {
+  stopPolling()
+})
 </script>
 
 <style scoped lang="scss">
@@ -637,6 +787,120 @@ const handlePurchase = async () => {
   .features-section,
   .faq-section {
     padding: 24px;
+  }
+}
+
+/* 支付弹窗 */
+.pay-select {
+  text-align: center;
+
+  .pay-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: var(--color-text);
+  }
+
+  .pay-amount {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin: 0 0 20px;
+  }
+
+  .pay-channel-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+    text-align: left;
+
+    .pay-channel {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      margin: 0;
+      transition: all var(--transition-fast);
+
+      &.ant-radio-wrapper-checked {
+        border-color: var(--color-primary);
+        background: rgba(34, 197, 94, 0.04);
+      }
+
+      .anticon {
+        font-size: 22px;
+      }
+    }
+  }
+
+  .pay-confirm-btn {
+    height: 44px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: var(--radius-lg);
+    background: var(--gradient-primary) !important;
+    border: none !important;
+  }
+}
+
+.pay-paying {
+  text-align: center;
+  padding: 8px 0;
+
+  .pay-qrcode {
+    width: 240px;
+    height: 240px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 8px;
+    margin-bottom: 12px;
+  }
+
+  .pay-hint {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+    margin: 0 0 8px;
+  }
+
+  .pay-order {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    margin: 0 0 4px;
+    word-break: break-all;
+  }
+
+  .pay-tip {
+    font-size: 12px;
+    color: #f59e0b;
+    margin: 0;
+  }
+}
+
+.pay-success {
+  text-align: center;
+  padding: 16px 0;
+
+  .pay-success-icon {
+    font-size: 56px;
+    color: var(--color-primary);
+    margin-bottom: 12px;
+  }
+
+  h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 0 0 8px;
+  }
+
+  p {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin: 0;
   }
 }
 </style>

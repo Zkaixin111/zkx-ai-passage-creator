@@ -77,6 +77,20 @@
             <version>1.11.1</version>
         </dependency>
 
+        <!-- 微信支付官方 SDK（APIv3，自动证书管理） -->
+        <dependency>
+            <groupId>com.github.wechatpay-apiv3</groupId>
+            <artifactId>wechatpay-java</artifactId>
+            <version>0.2.12</version>
+        </dependency>
+
+        <!-- 支付宝官方 SDK -->
+        <dependency>
+            <groupId>com.alipay.sdk</groupId>
+            <artifactId>alipay-sdk-java</artifactId>
+            <version>4.40.934.ALL</version>
+        </dependency>
+
         <!-- 腾讯云 COS 对象存储 SDK（图片上传） -->
         <dependency>
             <groupId>com.qcloud</groupId>

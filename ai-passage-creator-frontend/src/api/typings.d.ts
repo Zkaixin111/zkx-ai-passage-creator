@@ -372,4 +372,25 @@ declare namespace API {
     createTime?: string
     updateTime?: string
   }
+
+  type PayCreateRequest = {
+    channel?: string
+  }
+
+  type PayCreateResponse = {
+    orderNo?: string
+    channel?: string
+    productType?: string
+    subject?: string
+    amount?: number
+    status?: string
+    payUrl?: string
+    payType?: string
+  }
+
+  type BaseResponsePayCreateResponse = {
+    code?: number
+    data?: PayCreateResponse
+    message?: string
+  }
 }

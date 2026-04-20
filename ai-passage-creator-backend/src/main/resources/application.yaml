@@ -80,3 +80,22 @@ article:
     region: ap-guangzhou
     bucket: zkx-1374009979
     prefix: article
+
+# 支付配置（微信 Native + 支付宝；敏感信息建议用环境变量注入）
+pay:
+  # VIP 永久会员价格（元）
+  vip-price: 29.90
+  # 回调基础地址：必须是公网可访问地址（本地联调可用内网穿透，如 natapp/ngrok）
+  notify-base-url: http://localhost:8123/api
+  wechat:
+    appid: ${PAY_WECHAT_APPID:}
+    mchid: ${PAY_WECHAT_MCHID:}
+    api-v3-key: ${PAY_WECHAT_APIV3KEY:}
+    merchant-serial-no: ${PAY_WECHAT_SERIAL_NO:}
+    private-key-path: ${PAY_WECHAT_PRIVATE_KEY_PATH:}
+  alipay:
+    app-id: ${PAY_ALIPAY_APP_ID:}
+    private-key: ${PAY_ALIPAY_PRIVATE_KEY:}
+    alipay-public-key: ${PAY_ALIPAY_PUBLIC_KEY:}
+    # 沙箱网关: https://openapi-sandbox.dl.alipaydev.com/gateway.do
+    gateway: ${PAY_ALIPAY_GATEWAY:https://openapi.alipay.com/gateway.do}
