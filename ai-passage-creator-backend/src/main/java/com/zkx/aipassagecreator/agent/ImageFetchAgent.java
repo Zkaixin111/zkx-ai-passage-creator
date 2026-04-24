@@ -1,5 +1,7 @@
 package com.zkx.aipassagecreator.agent;
 
+import com.zkx.aipassagecreator.annotation.AgentLog;
+
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
 import com.zkx.aipassagecreator.config.SseEmitterManager;
@@ -40,6 +42,7 @@ public class ImageFetchAgent {
     @Resource
     private SseEmitterManager sseEmitterManager;
 
+    @AgentLog
     public void execute(ArticleTaskContext ctx) {
         long start = System.currentTimeMillis();
         try {

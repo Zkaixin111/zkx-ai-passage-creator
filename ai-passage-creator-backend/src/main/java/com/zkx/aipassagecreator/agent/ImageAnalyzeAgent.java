@@ -1,5 +1,7 @@
 package com.zkx.aipassagecreator.agent;
 
+import com.zkx.aipassagecreator.annotation.AgentLog;
+
 import com.zkx.aipassagecreator.common.JsonExtractUtil;
 import com.zkx.aipassagecreator.config.SseEmitterManager;
 import com.zkx.aipassagecreator.constant.ArticleConstant;
@@ -30,6 +32,7 @@ public class ImageAnalyzeAgent {
     @Resource
     private SseEmitterManager sseEmitterManager;
 
+    @AgentLog
     public void execute(ArticleTaskContext ctx) {
         long start = System.currentTimeMillis();
         try {

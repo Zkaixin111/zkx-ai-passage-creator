@@ -1,5 +1,7 @@
 package com.zkx.aipassagecreator.agent;
 
+import com.zkx.aipassagecreator.annotation.AgentLog;
+
 import com.zkx.aipassagecreator.config.SseEmitterManager;
 import com.zkx.aipassagecreator.constant.ArticleConstant;
 import com.zkx.aipassagecreator.model.context.ArticleTaskContext;
@@ -27,6 +29,7 @@ public class MergeAgent {
     @Resource
     private SseEmitterManager sseEmitterManager;
 
+    @AgentLog
     public void execute(ArticleTaskContext ctx) {
         long start = System.currentTimeMillis();
         try {

@@ -1,5 +1,7 @@
 package com.zkx.aipassagecreator.agent;
 
+import com.zkx.aipassagecreator.annotation.AgentLog;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zkx.aipassagecreator.config.SseEmitterManager;
 import com.zkx.aipassagecreator.constant.ArticleConstant;
@@ -33,6 +35,7 @@ public class ContentAgent {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+    @AgentLog
     public void execute(ArticleTaskContext ctx) {
         long start = System.currentTimeMillis();
         log.info("[{}] ContentAgent 开始执行", ctx.getTaskId());
