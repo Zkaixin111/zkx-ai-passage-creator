@@ -48,9 +48,9 @@ public class AgentLogServiceImpl implements AgentLogService {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Override
-    public void enqueue(AgentLog log) {
+    public void enqueue(AgentLog logEntity) {
         try {
-            String json = OBJECT_MAPPER.writeValueAsString(log);
+            String json = OBJECT_MAPPER.writeValueAsString(logEntity);
             stringRedisTemplate.opsForList().leftPush(KEY_LOG_QUEUE, json);
             // 限长，防止队列无限增长
             stringRedisTemplate.opsForList().trim(KEY_LOG_QUEUE, 0, MAX_QUEUE_SIZE - 1);
@@ -73,17 +73,17 @@ public class AgentLogServiceImpl implements AgentLogService {
                 if (json == null) {
                     break;
                 }
-                AgentLog log = OBJECT_MAPPER.readValue(json, AgentLog.class);
-                if (log.getCreateTime() == null) {
-                    log.setCreateTime(LocalDateTime.now());
+                AgentLog logEntity = OBJECT_MAPPER.readValue(json, AgentLog.class);
+                if (logEntity.getCreateTime() == null) {
+                    logEntity.setCreateTime(LocalDateTime.now());
                 }
-                if (log.getUpdateTime() == null) {
-                    log.setUpdateTime(LocalDateTime.now());
+                if (logEntity.getUpdateTime() == null) {
+                    logEntity.setUpdateTime(LocalDateTime.now());
                 }
-                if (log.getIsDelete() == null) {
-                    log.setIsDelete(0);
+                if (logEntity.getIsDelete() == null) {
+                    logEntity.setIsDelete(0);
                 }
-                batch.add(log);
+                batch.add(logEntity);
             }
             if (batch.isEmpty()) {
                 return 0;

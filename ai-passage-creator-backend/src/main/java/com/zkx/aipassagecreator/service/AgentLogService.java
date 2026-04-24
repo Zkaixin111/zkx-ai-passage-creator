@@ -15,7 +15,7 @@ public interface AgentLogService {
     /**
      * 写入 Redis 日志队列（供 AOP 切面调用，异步落库由定时任务完成）
      */
-    void enqueue(AgentLog log);
+    void enqueue(AgentLog logEntity);
 
     /**
      * 定时批量落库：从 Redis 队列取出并批量插入 agent_log 表

@@ -137,19 +137,19 @@ public class ArticleTaskContext {
      */
     public void addLog(String agentName, String status, String prompt, String inputData, String outputData,
                        String errorMessage, long durationMs) {
-        AgentLog log = new AgentLog();
-        log.setTaskId(taskId);
-        log.setAgentName(agentName);
-        log.setStatus(status);
-        log.setStartTime(LocalDateTime.now().minusNanos(durationMs * 1_000_000L)
+        AgentLog logItem = new AgentLog();
+        logItem.setTaskId(taskId);
+        logItem.setAgentName(agentName);
+        logItem.setStatus(status);
+        logItem.setStartTime(LocalDateTime.now().minusNanos(durationMs * 1_000_000L)
                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        log.setEndTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-        log.setDurationMs(durationMs);
-        log.setPrompt(truncate(prompt, 1000));
-        log.setInputData(truncate(inputData, 2000));
-        log.setOutputData(truncate(outputData, 2000));
-        log.setErrorMessage(truncate(errorMessage, 500));
-        logs.add(log);
+        logItem.setEndTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        logItem.setDurationMs(durationMs);
+        logItem.setPrompt(truncate(prompt, 1000));
+        logItem.setInputData(truncate(inputData, 2000));
+        logItem.setOutputData(truncate(outputData, 2000));
+        logItem.setErrorMessage(truncate(errorMessage, 500));
+        logs.add(logItem);
     }
 
     private String truncate(String s, int max) {
