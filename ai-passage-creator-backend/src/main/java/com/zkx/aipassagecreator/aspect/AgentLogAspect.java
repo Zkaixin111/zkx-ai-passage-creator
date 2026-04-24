@@ -68,21 +68,21 @@ public class AgentLogAspect {
                     errorMessage = "智能体内部执行失败（已中断任务）";
                 }
 
-                com.zkx.aipassagecreator.model.entity.AgentLog log = new com.zkx.aipassagecreator.model.entity.AgentLog();
-                log.setTaskId(taskId);
-                log.setAgentName(agentName);
-                log.setStartTime(startTime);
-                log.setEndTime(LocalDateTime.now());
-                log.setDurationMs(System.currentTimeMillis() - start);
-                log.setStatus(status);
-                log.setErrorMessage(errorMessage);
-                log.setPrompt(extractPrompt(pjp.getArgs(), agentName));
-                log.setInputData(extractInput(pjp.getArgs()));
-                log.setOutputData(extractOutput(pjp.getArgs(), agentName, result));
-                log.setCreateTime(LocalDateTime.now());
-                log.setUpdateTime(LocalDateTime.now());
-                log.setIsDelete(0);
-                agentLogService.enqueue(log);
+                com.zkx.aipassagecreator.model.entity.AgentLog logRecord = new com.zkx.aipassagecreator.model.entity.AgentLog();
+                logRecord.setTaskId(taskId);
+                logRecord.setAgentName(agentName);
+                logRecord.setStartTime(startTime);
+                logRecord.setEndTime(LocalDateTime.now());
+                logRecord.setDurationMs(System.currentTimeMillis() - start);
+                logRecord.setStatus(status);
+                logRecord.setErrorMessage(errorMessage);
+                logRecord.setPrompt(extractPrompt(pjp.getArgs(), agentName));
+                logRecord.setInputData(extractInput(pjp.getArgs()));
+                logRecord.setOutputData(extractOutput(pjp.getArgs(), agentName, result));
+                logRecord.setCreateTime(LocalDateTime.now());
+                logRecord.setUpdateTime(LocalDateTime.now());
+                logRecord.setIsDelete(0);
+                agentLogService.enqueue(logRecord);
             } catch (Exception e) {
                 log.warn("智能体日志记录异常: {}", e.getMessage());
             }
