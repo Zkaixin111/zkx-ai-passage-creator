@@ -313,11 +313,12 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
     /**
      * 获取任务执行统计/日志（供 execution-logs 接口使用）
      * <p>
-     * 任务进行中从内存上下文读取；完成后返回基础统计。
+     * 任务进行中从内存上下文读取；完成后返回基础统计。非管理员只能查看自己的任务。
      */
-    public AgentExecutionStats getExecutionStats(String taskId, Long userId) {
+    public AgentExecutionStats getExecutionStats(String taskId, Long userId, boolean isAdmin) {
         Article article = getArticleByTaskId(taskId);
-        if (!article.getUserId().equals(userId)) {
+        // 非管理员只能查看自己的任务；管理员可查看全部
+        if (!isAdmin && !article.getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限查看该任务");
         }
         AgentExecutionStats stats = new AgentExecutionStats();

@@ -42,9 +42,10 @@ public class ArticleServiceImpl implements ArticleService {
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Override
-    public ArticleVO getArticle(String taskId, Long userId) {
+    public ArticleVO getArticle(String taskId, Long userId, boolean isAdmin) {
         Article article = getByTaskId(taskId);
-        if (!article.getUserId().equals(userId)) {
+        // 非管理员只能查看自己的文章；管理员可查看全部
+        if (!isAdmin && !article.getUserId().equals(userId)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限查看该文章");
         }
         return toVO(article);
@@ -106,8 +107,8 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
-    public AgentExecutionStats getExecutionLogs(String taskId, Long userId) {
-        return articleTaskService.getExecutionStats(taskId, userId);
+    public AgentExecutionStats getExecutionLogs(String taskId, Long userId, boolean isAdmin) {
+        return articleTaskService.getExecutionStats(taskId, userId, isAdmin);
     }
 
     // ==================== 私有辅助 ====================

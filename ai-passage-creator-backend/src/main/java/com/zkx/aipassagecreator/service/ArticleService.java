@@ -11,9 +11,9 @@ import com.zkx.aipassagecreator.model.vo.ArticleVO;
 public interface ArticleService {
 
     /**
-     * 获取文章详情
+     * 获取文章详情（本人或管理员）
      */
-    ArticleVO getArticle(String taskId, Long userId);
+    ArticleVO getArticle(String taskId, Long userId, boolean isAdmin);
 
     /**
      * 分页查询文章列表（非管理员只看自己的）
@@ -26,7 +26,7 @@ public interface ArticleService {
     boolean deleteArticle(Long id, Long userId, boolean isAdmin);
 
     /**
-     * 获取任务执行日志/统计
+     * 获取任务执行日志/统计（本人或管理员）
      */
-    AgentExecutionStats getExecutionLogs(String taskId, Long userId);
+    AgentExecutionStats getExecutionLogs(String taskId, Long userId, boolean isAdmin);
 }

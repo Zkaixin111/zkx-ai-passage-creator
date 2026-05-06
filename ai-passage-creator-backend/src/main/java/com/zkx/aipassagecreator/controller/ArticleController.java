@@ -123,7 +123,8 @@ public class ArticleController {
     public BaseResponse<ArticleVO> getArticle(@PathVariable String taskId, HttpServletRequest httpRequest) {
         ThrowUtils.throwIf(taskId == null || taskId.isBlank(), ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(httpRequest);
-        ArticleVO articleVO = articleService.getArticle(taskId, loginUser.getId());
+        boolean isAdmin = userService.isAdmin(httpRequest);
+        ArticleVO articleVO = articleService.getArticle(taskId, loginUser.getId(), isAdmin);
         return ResultUtils.success(articleVO);
     }
 
@@ -155,7 +156,8 @@ public class ArticleController {
     public BaseResponse<AgentExecutionStats> getExecutionLogs(@PathVariable String taskId, HttpServletRequest httpRequest) {
         ThrowUtils.throwIf(taskId == null || taskId.isBlank(), ErrorCode.PARAMS_ERROR);
         User loginUser = userService.getLoginUser(httpRequest);
-        AgentExecutionStats stats = articleService.getExecutionLogs(taskId, loginUser.getId());
+        boolean isAdmin = userService.isAdmin(httpRequest);
+        AgentExecutionStats stats = articleService.getExecutionLogs(taskId, loginUser.getId(), isAdmin);
         return ResultUtils.success(stats);
     }
 }
