@@ -2,8 +2,8 @@ package com.zkx.aipassagecreator.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.query.QueryWrapper;
-import com.zkx.aipassagecreator.agent.*;
 import com.zkx.aipassagecreator.common.JsonExtractUtil;
+import com.zkx.aipassagecreator.config.ArticleAgentGraph;
 import com.zkx.aipassagecreator.config.SseEmitterManager;
 import com.zkx.aipassagecreator.constant.ArticleConstant;
 import com.zkx.aipassagecreator.constant.PromptConstant;
@@ -46,7 +46,7 @@ import java.util.concurrent.Executor;
 /**
  * 文章任务编排服务实现
  * <p>
- * 三层架构中的「异步执行层」：提交线程池执行智能体链路，接口快速返回。
+ * 三层架构中的「异步执行层」：提交线程池执行 StateGraph 智能体图，接口快速返回。
  * 内存维护 taskId → ArticleTaskContext，任务完成后清理。
  */
 @Slf4j
@@ -61,22 +61,7 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
     private Executor taskExecutor;
 
     @Resource
-    private TitleAgent titleAgent;
-
-    @Resource
-    private OutlineAgent outlineAgent;
-
-    @Resource
-    private ContentAgent contentAgent;
-
-    @Resource
-    private ImageAnalyzeAgent imageAnalyzeAgent;
-
-    @Resource
-    private ImageFetchAgent imageFetchAgent;
-
-    @Resource
-    private MergeAgent mergeAgent;
+    private ArticleAgentGraph articleAgentGraph;
 
     @Resource
     private ChatClient.Builder chatClientBuilder;
@@ -129,10 +114,10 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         ctx.setStartTime(System.currentTimeMillis());
         contextMap.put(taskId, ctx);
 
-        // 异步启动智能体1（生成标题），完成后持久化标题方案并暂停等待用户确认
+        // 异步执行 StateGraph 智能体1（生成标题），完成后持久化标题方案并暂停等待用户确认
         taskExecutor.execute(() -> {
             try {
-                titleAgent.execute(ctx);
+                articleAgentGraph.invokeTitle(ctx);
                 if (ctx.isCancelled()) {
                     return; // 智能体内部已推送错误
                 }
@@ -168,10 +153,10 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         article.setPhase(ArticlePhaseEnum.OUTLINE_GENERATING.getValue());
         articleMapper.update(article);
 
-        // 异步启动智能体2（生成大纲，流式），完成后持久化大纲并暂停等待用户确认
+        // 异步执行 StateGraph 智能体2（生成大纲，流式），完成后持久化大纲并暂停等待用户确认
         taskExecutor.execute(() -> {
             try {
-                outlineAgent.execute(ctx);
+                articleAgentGraph.invokeOutline(ctx);
                 if (ctx.isCancelled()) {
                     return; // 智能体内部已推送错误
                 }
@@ -210,10 +195,10 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         article.setPhase(ArticlePhaseEnum.CONTENT_GENERATING.getValue());
         articleMapper.update(article);
 
-        // 异步启动智能体3（生成正文），正文完成后暂停等待用户确认是否配图
+        // 异步执行 StateGraph 智能体3（生成正文），正文完成后暂停等待用户确认是否配图
         taskExecutor.execute(() -> {
             try {
-                contentAgent.execute(ctx);
+                articleAgentGraph.invokeContent(ctx);
                 if (ctx.isCancelled()) {
                     return;
                 }
@@ -256,20 +241,14 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
             articleMapper.update(article);
         }
 
-        // 异步启动智能体4-6（配图分析→配图→合成）；不生成图片则直接合成
+        // 异步执行 StateGraph 智能体4-6（配图分析→配图并行→合成）；不生成图片则仅执行合成
         taskExecutor.execute(() -> {
             try {
                 if (generateImages) {
-                    imageAnalyzeAgent.execute(ctx);
-                    if (ctx.isCancelled()) {
-                        return;
-                    }
-                    imageFetchAgent.execute(ctx);
-                    if (ctx.isCancelled()) {
-                        return;
-                    }
+                    articleAgentGraph.invokeImage(ctx);
+                } else {
+                    articleAgentGraph.invokeMergeOnly(ctx);
                 }
-                mergeAgent.execute(ctx);
                 if (ctx.isCancelled()) {
                     return;
                 }

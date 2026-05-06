@@ -17,15 +17,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.Resource;
+import org.springframework.beans.factory.annotation.Qualifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 /**
- * 智能体5：获取配图（策略模式）
+ * 智能体5：获取配图（策略模式 + 并行抓取）
  * <p>
- * 按用户启用的配图方式（enabledImageMethods）轮询分配策略逐张生成，
+ * 按用户启用的配图方式（enabledImageMethods）轮询分配策略生成配图，
+ * 多张配图通过 CompletableFuture + 专用线程池并行下载/生成/上传 COS，
  * 策略失败时逐级降级：分配策略 → 默认 Pexels（含 Picsum 兜底）→ Picsum 直链。
  * 全部完成后推送 AGENT5_COMPLETE(images)。
  */
@@ -42,26 +46,38 @@ public class ImageFetchAgent {
     @Resource
     private SseEmitterManager sseEmitterManager;
 
+    @Resource
+    @Qualifier("imageFetchExecutor")
+    private Executor imageFetchExecutor;
+
     @AgentLog
     public void execute(ArticleTaskContext ctx) {
         long start = System.currentTimeMillis();
         try {
             List<ImageItem> requirements = ctx.getImageRequirements();
+            List<ImageProvider> providers = resolveProviders(ctx.getEnabledImageMethods());
             List<ImageItem> images = new ArrayList<>();
 
-            List<ImageProvider> providers = resolveProviders(ctx.getEnabledImageMethods());
-
-            for (int i = 0; i < requirements.size(); i++) {
-                if (ctx.isCancelled()) {
-                    break;
+            if (requirements == null || requirements.isEmpty()) {
+                ctx.setImages(images);
+            } else {
+                int n = requirements.size();
+                // 每张配图一个异步任务并行执行（下载/生成/上传 COS 互不依赖）
+                List<CompletableFuture<ImageItem>> futures = new ArrayList<>(n);
+                for (int i = 0; i < n; i++) {
+                    ImageItem req = requirements.get(i);
+                    int index = i;
+                    futures.add(CompletableFuture.supplyAsync(
+                            () -> fetchOne(req, providers, ctx.getTaskId(), index), imageFetchExecutor));
                 }
-                ImageItem req = requirements.get(i);
-                ImageItem img = fetchOne(req, providers, ctx.getTaskId(), i);
-                images.add(img);
-                sseEmitterManager.send(ctx.getTaskId(), SSEMessageTypeEnum.IMAGE_COMPLETE, null);
+                // 主线程按序收集（各图已并行完成），顺序推送 SSE 保持进度有序
+                for (CompletableFuture<ImageItem> future : futures) {
+                    images.add(future.join());
+                    sseEmitterManager.send(ctx.getTaskId(), SSEMessageTypeEnum.IMAGE_COMPLETE, null);
+                }
+                ctx.setImages(images);
             }
 
-            ctx.setImages(images);
             Map<String, Object> extra = new HashMap<>();
             extra.put(ArticleConstant.SSE_IMAGES, images);
             sseEmitterManager.send(ctx.getTaskId(), SSEMessageTypeEnum.AGENT5_COMPLETE, extra);

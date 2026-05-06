@@ -33,4 +33,22 @@ public class AsyncConfig {
         executor.initialize();
         return executor;
     }
+
+    /**
+     * 配图并行抓取线程池
+     * <p>
+     * ImageFetchAgent 内多张配图通过 CompletableFuture 并行下载/生成/上传 COS，
+     * 将串行耗时压缩到单图耗时级别。
+     */
+    @Bean(name = "imageFetchExecutor")
+    public Executor imageFetchExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(8);
+        executor.setQueueCapacity(50);
+        executor.setThreadNamePrefix("image-fetch-");
+        executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+        executor.initialize();
+        return executor;
+    }
 }
