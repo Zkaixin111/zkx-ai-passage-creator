@@ -32,15 +32,18 @@ import java.util.function.Consumer;
  *   4. imageGraph   : START → ImageAnalyze → ImageFetch → Merge → END
  *                    （配图分析 → 配图（并行抓图）→ 图文合成）
  * </pre>
- * 每段图独立 compile 缓存，{@link ArticleTaskContext} 对象作为状态直接放入
- * OverAllState 传递（图内不启用持久化 checkpointer，纯内存运行）。
+ * 每段图独立 compile 缓存。注意：StateGraph 的 OverAllState 会对输入数据做
+ * 深拷贝（SerializationUtils.deepCopyMap），复杂对象不可直接放入状态传递；
+ * 图状态仅传递 taskId，节点通过 {@link ArticleTaskRegistry} 获取原始上下文引用。
  */
 @Slf4j
 @Component
 public class ArticleAgentGraph {
 
-    /** OverAllState 中存放任务上下文的键 */
-    private static final String KEY_CTX = "ctx";
+    /** OverAllState 中存放任务 ID 的键 */
+    private static final String KEY_TASK_ID = "taskId";
+
+    private final ArticleTaskRegistry registry;
 
     private final CompiledGraph titleGraph;
     private final CompiledGraph outlineGraph;
@@ -48,12 +51,14 @@ public class ArticleAgentGraph {
     private final CompiledGraph imageGraph;
     private final CompiledGraph mergeGraph;
 
-    public ArticleAgentGraph(TitleAgent titleAgent,
+    public ArticleAgentGraph(ArticleTaskRegistry registry,
+                             TitleAgent titleAgent,
                              OutlineAgent outlineAgent,
                              ContentAgent contentAgent,
                              ImageAnalyzeAgent imageAnalyzeAgent,
                              ImageFetchAgent imageFetchAgent,
                              MergeAgent mergeAgent) throws GraphStateException {
+        this.registry = registry;
         this.titleGraph = buildTitleGraph(titleAgent);
         this.outlineGraph = buildOutlineGraph(outlineAgent);
         this.contentGraph = buildContentGraph(contentAgent);
@@ -144,16 +149,19 @@ public class ArticleAgentGraph {
     }
 
     /**
-     * 将智能体方法适配为 Graph 节点动作：从状态中取出任务上下文并执行。
+     * 将智能体方法适配为 Graph 节点动作：从注册表取出任务上下文并执行。
      * <p>
+     * OverAllState 会对输入做深拷贝，故状态中只放 taskId，
+     * 通过 {@link ArticleTaskRegistry} 获取原始上下文引用（智能体写入生效）。
      * 智能体 execute 内部自带异常兜底（失败置 cancelled + SSE 推送），
      * 节点返回空状态更新即可。
      */
     private AsyncNodeAction node(Consumer<ArticleTaskContext> executor) {
         return AsyncNodeAction.node_async(state -> {
-            ArticleTaskContext ctx = state.<ArticleTaskContext>value(KEY_CTX).orElse(null);
+            String taskId = state.<String>value(KEY_TASK_ID).orElse(null);
+            ArticleTaskContext ctx = taskId == null ? null : registry.get(taskId);
             if (ctx == null) {
-                throw new IllegalStateException("StateGraph 状态缺少任务上下文(ctx)");
+                throw new IllegalStateException("StateGraph 状态缺少任务上下文(taskId=" + taskId + ")");
             }
             executor.accept(ctx);
             return new HashMap<String, Object>();
@@ -162,7 +170,7 @@ public class ArticleAgentGraph {
 
     private void invoke(CompiledGraph graph, ArticleTaskContext ctx) {
         Map<String, Object> input = new HashMap<>();
-        input.put(KEY_CTX, ctx);
+        input.put(KEY_TASK_ID, ctx.getTaskId());
         RunnableConfig config = RunnableConfig.builder().threadId(ctx.getTaskId()).build();
         Optional<OverAllState> result = graph.invoke(input, config);
         if (result.isEmpty()) {

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.zkx.aipassagecreator.common.JsonExtractUtil;
 import com.zkx.aipassagecreator.config.ArticleAgentGraph;
+import com.zkx.aipassagecreator.config.ArticleTaskRegistry;
 import com.zkx.aipassagecreator.config.SseEmitterManager;
 import com.zkx.aipassagecreator.constant.ArticleConstant;
 import com.zkx.aipassagecreator.constant.PromptConstant;
@@ -40,7 +41,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 
 /**
@@ -75,7 +75,8 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
     @Resource
     private UserMapper userMapper;
 
-    private final Map<String, ArticleTaskContext> contextMap = new ConcurrentHashMap<>();
+    @Resource
+    private ArticleTaskRegistry articleTaskRegistry;
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
@@ -112,7 +113,7 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         ctx.setStyle(request.getStyle());
         ctx.setEnabledImageMethods(request.getEnabledImageMethods());
         ctx.setStartTime(System.currentTimeMillis());
-        contextMap.put(taskId, ctx);
+        articleTaskRegistry.put(taskId, ctx);
 
         // 异步执行 StateGraph 智能体1（生成标题），完成后持久化标题方案并暂停等待用户确认
         taskExecutor.execute(() -> {
@@ -208,7 +209,7 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
                 art.setPhase(ArticlePhaseEnum.CONTENT_CONFIRMING.getValue());
                 art.setUpdateTime(LocalDateTime.now());
                 articleMapper.update(art);
-                // 注意：此处不 remove contextMap，由 confirmContent 的异步任务完成后清理
+                // 注意：此处不 remove registry，由 confirmContent 的异步任务完成后清理
             } catch (Exception e) {
                 log.error("确认大纲后智能体3执行异常: {}", e.getMessage(), e);
                 markFailed(taskId, "正文生成失败");
@@ -257,7 +258,7 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
                 log.error("配图/合成链路执行异常: {}", e.getMessage(), e);
                 markFailed(taskId, "内容生成失败");
             } finally {
-                contextMap.remove(taskId);
+                articleTaskRegistry.remove(taskId);
             }
         });
     }
@@ -286,7 +287,7 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         // 同步更新数据库与内存上下文
         article.setOutline(toJson(newOutline));
         articleMapper.update(article);
-        ArticleTaskContext ctx = contextMap.get(taskId);
+        ArticleTaskContext ctx = articleTaskRegistry.get(taskId);
         if (ctx != null) {
             ctx.touch();
             ctx.setOutline(newOutline.stream().map(s -> {
@@ -324,7 +325,7 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         AgentExecutionStats stats = new AgentExecutionStats();
         stats.setTaskId(taskId);
         stats.setOverallStatus(article.getStatus());
-        ArticleTaskContext ctx = contextMap.get(taskId);
+        ArticleTaskContext ctx = articleTaskRegistry.get(taskId);
         if (ctx != null) {
             stats.setAgentCount(ctx.getAgentDurations().size());
             stats.setAgentDurations(ctx.getAgentDurations());
@@ -343,7 +344,7 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         if (taskId == null || taskId.isBlank()) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "任务 ID 不能为空");
         }
-        ArticleTaskContext ctx = contextMap.get(taskId);
+        ArticleTaskContext ctx = articleTaskRegistry.get(taskId);
         if (ctx == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "任务不存在或已过期，请重新创建");
         }
@@ -353,7 +354,7 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         // 惰性过期检查：用户长时间未操作（超过任务总超时时间）视为任务过期，清理并提示
         if (System.currentTimeMillis() - ctx.getLastActiveTime() > ArticleConstant.TASK_TIMEOUT_MS) {
             log.info("[{}] 任务因长时间未操作而过期", taskId);
-            contextMap.remove(taskId);
+            articleTaskRegistry.remove(taskId);
             sseEmitterManager.complete(taskId);
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "任务已过期，请重新创建");
         }
@@ -367,10 +368,10 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
     @Scheduled(fixedDelay = 5 * 60 * 1000L)
     public void cleanExpiredContexts() {
         long now = System.currentTimeMillis();
-        contextMap.forEach((taskId, ctx) -> {
+        articleTaskRegistry.forEach((taskId, ctx) -> {
             if (now - ctx.getLastActiveTime() > ArticleConstant.TASK_TIMEOUT_MS) {
                 log.info("[{}] 定时清理过期任务上下文", taskId);
-                contextMap.remove(taskId);
+                articleTaskRegistry.remove(taskId);
                 sseEmitterManager.complete(taskId);
             }
         });
