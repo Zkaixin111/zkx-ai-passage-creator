@@ -3,6 +3,7 @@ package com.zkx.aipassagecreator.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.zkx.aipassagecreator.mapper.AgentLogMapper;
 import com.zkx.aipassagecreator.model.entity.AgentLog;
@@ -45,7 +46,12 @@ public class AgentLogServiceImpl implements AgentLogService {
     @Resource
     private StringRedisTemplate stringRedisTemplate;
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    /**
+     * 序列化/反序列化 AgentLog（含 LocalDateTime 字段，必须注册 JavaTimeModule，
+     * 否则 enqueue 时 LocalDateTime 序列化失败导致日志被丢弃）
+     */
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .registerModule(new JavaTimeModule());
 
     @Override
     public void enqueue(AgentLog logEntity) {

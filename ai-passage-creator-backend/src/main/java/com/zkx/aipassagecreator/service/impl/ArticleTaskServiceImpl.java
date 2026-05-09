@@ -78,7 +78,8 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
     @Resource
     private ArticleTaskRegistry articleTaskRegistry;
 
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+            .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
 
     @Override
     public String createTask(ArticleCreateRequest request, Long userId) {
