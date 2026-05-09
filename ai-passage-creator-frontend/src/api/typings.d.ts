@@ -59,14 +59,14 @@ declare namespace API {
     pageSize?: number
     sortField?: string
     sortOrder?: string
-    userId?: number
+    userId?: string
     status?: string
   }
 
   type ArticleVO = {
     id?: string
     taskId?: string
-    userId?: number
+    userId?: string
     topic?: string
     userDescription?: string
     mainTitle?: string
@@ -105,12 +105,6 @@ declare namespace API {
   type BaseResponseListOutlineSection = {
     code?: number
     data?: OutlineSection[]
-    message?: string
-  }
-
-  type BaseResponseListPaymentRecord = {
-    code?: number
-    data?: PaymentRecord[]
     message?: string
   }
 
@@ -237,26 +231,6 @@ declare namespace API {
     optimizeCountQuery?: boolean
   }
 
-  type PaymentRecord = {
-    id?: string
-    userId?: number
-    stripeSessionId?: string
-    stripePaymentIntentId?: string
-    amount?: number
-    currency?: string
-    status?: string
-    productType?: string
-    description?: string
-    refundTime?: string
-    refundReason?: string
-    createTime?: string
-    updateTime?: string
-  }
-
-  type refundParams = {
-    reason?: string
-  }
-
   type SseEmitter = {
     timeout?: number
   }
@@ -272,6 +246,22 @@ declare namespace API {
     totalUserCount?: number
     vipUserCount?: number
     quotaUsed?: number
+    agentStats?: AgentStatVO[]
+    trend?: TrendPointVO[]
+  }
+
+  type AgentStatVO = {
+    agentName?: string
+    execCount?: number
+    successCount?: number
+    failCount?: number
+    avgDurationMs?: number
+    successRate?: number
+  }
+
+  type TrendPointVO = {
+    date?: string
+    count?: number
   }
 
   type TitleOption = {

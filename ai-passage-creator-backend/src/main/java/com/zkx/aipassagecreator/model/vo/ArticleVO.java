@@ -20,7 +20,8 @@ public class ArticleVO implements Serializable {
     /** 任务 ID */
     private String taskId;
 
-    /** 用户 ID */
+    /** 用户 ID（雪花 ID，序列化为字符串避免前端 JS 精度丢失） */
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long userId;
 
     /** 选题 */
