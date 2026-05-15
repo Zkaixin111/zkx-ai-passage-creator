@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# mermaid-cli 本地渲染工具(node_modules 不入库, package.json 保留便于部署重装)
+ai-passage-creator-backend/tools/mermaid-cli/node_modules/

@@ -70,9 +70,12 @@ article:
   # AI 生图（NanoBanana 策略，走 DashScope 通义万相文生图）
   image:
     nano-banana:
-      # 文生图模型（默认 wanx2.1-t2i-turbo）
-      model: wanx2.1-t2i-turbo
+      # 文生图模型（wan2.7-r2v-2026-06-12；需该模型在百炼账号有调用权限）
+      model: wan2.7-r2v-2026-06-12
       # API key 复用 spring.ai.openai.api-key，无需单独配置
+    mermaid:
+      # mermaid-cli(mmdc) 可执行文件路径；npm 全局安装用 mmdc，项目内安装填实际路径
+      mmdc-path: D:/Code/ai-passage-creator/ai-passage-creator-backend/tools/mermaid-cli/node_modules/.bin/mmdc.cmd
   # 腾讯云 COS 图片上传
   cos:
     secretId: ${COS_SECRET_ID:}
