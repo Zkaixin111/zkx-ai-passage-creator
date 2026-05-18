@@ -91,6 +91,9 @@ public class NanoBananaImageProvider implements ImageProvider {
         String resp = HttpRequest.post(ArticleConstant.DASHSCOPE_T2I_URL)
                 .header("Authorization", "Bearer " + apiKey)
                 .header("Content-Type", "application/json")
+                // sk-ws 前缀的 workspace key 仅支持异步调用，必须显式声明异步模式，
+                // 否则提交返回 403 AccessDenied (does not support synchronous calls)
+                .header("X-DashScope-Async", "enable")
                 .timeout(15_000)
                 .body(body.toString())
                 .execute()
