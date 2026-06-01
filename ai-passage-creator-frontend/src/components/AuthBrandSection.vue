@@ -5,20 +5,20 @@
       <div class="brand-logo">
         <img src="@/assets/logo.png" alt="Logo" class="logo-img" />
       </div>
-      <h1 class="brand-title">AI 爆款文章创作器</h1>
-      <p class="brand-subtitle">让每个人都能写出 10万+ 文章</p>
+      <h1 class="brand-title">协笔 CoWrite</h1>
+      <p class="brand-subtitle">生成、确认、再生成 —— 每一步都由你掌控</p>
       <div class="brand-features">
         <div class="feature-item">
           <CheckCircleOutlined class="feature-check" />
-          <span>智能生成标题与大纲</span>
+          <span>标题、大纲由你确认，AI 全力辅助</span>
         </div>
         <div class="feature-item">
           <CheckCircleOutlined class="feature-check" />
-          <span>流式生成高质量正文</span>
+          <span>流式生成正文，进度实时可见</span>
         </div>
         <div class="feature-item">
           <CheckCircleOutlined class="feature-check" />
-          <span>自动配图一键导出</span>
+          <span>多策略配图，图文一键成稿</span>
         </div>
       </div>
     </div>
