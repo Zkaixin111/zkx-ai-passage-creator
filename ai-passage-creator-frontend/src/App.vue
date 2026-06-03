@@ -48,6 +48,9 @@ provide('locale', zhCN)
   --gradient-primary: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
   --gradient-hero: linear-gradient(180deg, #DCFCE7 0%, #FFFFFF 100%);
   --gradient-hero-dark: linear-gradient(180deg, #166534 0%, #14532D 100%);
+  --gradient-text: linear-gradient(135deg, #16A34A 0%, #22C55E 50%, #4ADE80 100%);
+  --gradient-glow: radial-gradient(circle at 30% 20%, rgba(34, 197, 94, 0.18) 0%, transparent 45%),
+                   radial-gradient(circle at 70% 80%, rgba(74, 222, 128, 0.14) 0%, transparent 40%);
 
   /* 纯色背景 */
   --bg-primary: #22C55E;
@@ -64,6 +67,7 @@ provide('locale', zhCN)
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
   --shadow-card-hover: 0 8px 24px rgba(34, 197, 94, 0.15);
   --shadow-green: 0 4px 14px rgba(34, 197, 94, 0.25);
+  --shadow-glow: 0 0 0 1px rgba(34, 197, 94, 0.12), 0 12px 40px -8px rgba(34, 197, 94, 0.28);
 
   /* 圆角 */
   --radius-sm: 6px;
@@ -77,11 +81,13 @@ provide('locale', zhCN)
   --transition-fast: 150ms ease-out;
   --transition-normal: 200ms ease-out;
   --transition-slow: 300ms ease-out;
+  --transition-bounce: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* 毛玻璃 */
   --glass-bg: rgba(255, 255, 255, 0.9);
   --glass-bg-green: rgba(220, 252, 231, 0.8);
   --glass-blur: blur(12px);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 /* 全局样式优化 */
@@ -144,6 +150,60 @@ a:hover {
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   transition: all var(--transition-normal);
+}
+
+/* 玻璃卡片通用类 */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+/* 可点击卡片悬浮动效 */
+.hoverable-card {
+  transition: transform var(--transition-bounce), box-shadow var(--transition-normal), border-color var(--transition-normal);
+}
+
+.hoverable-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--color-primary-light);
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* 渐变文字通用类 */
+.gradient-text {
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 按钮按压微反馈 */
+.ant-btn:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+/* 自定义滚动条（绿色系） */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(34, 197, 94, 0.25);
+  border-radius: var(--radius-full);
+  transition: background var(--transition-fast);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 197, 94, 0.45);
 }
 
 /* 可点击元素统一cursor */

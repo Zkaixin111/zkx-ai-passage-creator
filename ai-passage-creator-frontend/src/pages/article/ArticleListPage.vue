@@ -467,9 +467,12 @@ onMounted(() => {
     align-items: center;
     margin-bottom: 16px;
     padding: 16px 20px;
-    background: white;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
     border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
   }
 
   .filter-left {
@@ -517,8 +520,11 @@ onMounted(() => {
 
   .table-card {
     border-radius: var(--radius-lg);
-    border: 1px solid var(--color-border);
-    box-shadow: none;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: var(--glass-border);
+    box-shadow: var(--shadow-md);
     overflow: hidden;
 
     :deep(.ant-card-body) {

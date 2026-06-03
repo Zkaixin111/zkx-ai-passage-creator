@@ -112,12 +112,16 @@ onMounted(() => {
     <!-- Hero Section -->
     <div class="hero-section">
       <div class="hero-bg"></div>
+      <!-- 漂浮光斑装饰 -->
+      <div class="orb orb-1" aria-hidden="true"></div>
+      <div class="orb orb-2" aria-hidden="true"></div>
+      <div class="orb orb-3" aria-hidden="true"></div>
       <div class="container">
         <div class="hero-badge">
           <ThunderboltOutlined />
           <span>AI 人机协同写作平台</span>
         </div>
-        <h1 class="hero-title">协笔 CoWrite</h1>
+        <h1 class="hero-title">协笔 <span class="gradient-text">CoWrite</span></h1>
         <p class="hero-subtitle">生成、确认、再生成 —— 每一步都由你掌控</p>
 
         <!-- 核心输入框 -->
@@ -246,6 +250,52 @@ onMounted(() => {
   bottom: 0;
   background: var(--gradient-hero);
   z-index: 0;
+}
+
+/* 漂浮光斑 */
+.orb {
+  position: absolute;
+  border-radius: var(--radius-full);
+  filter: blur(60px);
+  opacity: 0.55;
+  z-index: 0;
+  pointer-events: none;
+  animation: orb-float 12s ease-in-out infinite;
+}
+
+.orb-1 {
+  width: 320px;
+  height: 320px;
+  top: -60px;
+  left: -80px;
+  background: rgba(74, 222, 128, 0.5);
+}
+
+.orb-2 {
+  width: 240px;
+  height: 240px;
+  top: 40px;
+  right: -60px;
+  background: rgba(34, 197, 94, 0.4);
+  animation-delay: -4s;
+}
+
+.orb-3 {
+  width: 180px;
+  height: 180px;
+  bottom: -40px;
+  left: 40%;
+  background: rgba(163, 230, 53, 0.35);
+  animation-delay: -8s;
+}
+
+@keyframes orb-float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-24px) scale(1.06);
+  }
 }
 
 .container {
@@ -404,21 +454,42 @@ onMounted(() => {
 }
 
 .feature-card {
-  background: white;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border);
+  position: relative;
+  overflow: hidden;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  border-radius: var(--radius-xl);
   padding: 24px;
   display: flex;
   gap: 16px;
   align-items: flex-start;
-  transition: all var(--transition-normal);
+  transition: transform var(--transition-bounce), box-shadow var(--transition-normal), border-color var(--transition-normal);
   cursor: pointer;
 }
 
+/* 卡片顶部渐变光条 */
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-primary);
+  opacity: 0;
+  transition: opacity var(--transition-normal);
+}
+
 .feature-card:hover {
-  border-color: var(--color-primary-light);
-  box-shadow: var(--shadow-card-hover);
-  transform: translateY(-2px);
+  transform: translateY(-5px);
+  border-color: rgba(34, 197, 94, 0.35);
+  box-shadow: var(--shadow-glow);
+}
+
+.feature-card:hover::before {
+  opacity: 1;
 }
 
 .feature-icon-wrapper {
@@ -429,10 +500,20 @@ onMounted(() => {
   justify-content: center;
   border-radius: var(--radius-md);
   flex-shrink: 0;
+  transition: background var(--transition-normal);
+}
+
+.feature-card:hover .feature-icon-wrapper {
+  background: rgba(34, 197, 94, 0.1);
 }
 
 .feature-icon {
   font-size: 22px;
+  transition: transform var(--transition-bounce);
+}
+
+.feature-card:hover .feature-icon {
+  transform: scale(1.15) rotate(-5deg);
 }
 
 .feature-content {

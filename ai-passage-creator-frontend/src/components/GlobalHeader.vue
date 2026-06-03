@@ -5,7 +5,7 @@
         <RouterLink to="/" class="logo-link">
           <div class="logo-wrapper">
             <img src="@/assets/logo.png" alt="Logo" class="logo-img" />
-            <h1 class="site-title">AI文章创作器</h1>
+            <h1 class="site-title">协笔 CoWrite</h1>
           </div>
         </RouterLink>
       </div>
@@ -163,8 +163,8 @@ const doLogout = async () => {
   top: 0;
   z-index: 100;
   background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur) saturate(160%);
+  -webkit-backdrop-filter: var(--glass-blur) saturate(160%);
   padding: 0;
   height: 64px;
   line-height: 64px;
@@ -216,6 +216,10 @@ const doLogout = async () => {
   color: var(--color-text);
   white-space: nowrap;
   letter-spacing: -0.3px;
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* 导航菜单 */
@@ -226,6 +230,7 @@ const doLogout = async () => {
 }
 
 .nav-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -238,6 +243,20 @@ const doLogout = async () => {
   text-decoration: none;
 }
 
+/* 导航项底部滑动指示条 */
+.nav-item::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%) scaleX(0);
+  width: 60%;
+  height: 2px;
+  border-radius: var(--radius-full);
+  background: var(--gradient-primary);
+  transition: transform var(--transition-normal);
+}
+
 .nav-item:hover {
   color: var(--color-text);
   background: var(--color-background-secondary);
@@ -246,6 +265,10 @@ const doLogout = async () => {
 .nav-item.active {
   color: var(--color-primary-dark);
   background: rgba(34, 197, 94, 0.1);
+}
+
+.nav-item.active::after {
+  transform: translateX(-50%) scaleX(1);
 }
 
 .nav-icon {

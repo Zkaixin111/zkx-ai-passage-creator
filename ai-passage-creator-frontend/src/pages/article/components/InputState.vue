@@ -3,7 +3,7 @@
     <div class="input-card">
       <div class="input-header">
         <h1 class="input-title">创作新文章</h1>
-        <p class="input-subtitle">输入选题，AI 帮你生成爆款文章</p>
+        <p class="input-subtitle">输入选题，AI 辅助你一步步完成创作</p>
       </div>
 
       <div class="input-area">
@@ -57,9 +57,27 @@ defineEmits<{
 }
 
 .input-card {
-  background: var(--color-background-secondary);
-  border-radius: var(--radius-xl);
+  position: relative;
+  overflow: hidden;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  border-radius: var(--radius-2xl);
   padding: 40px;
+  box-shadow: var(--shadow-md);
+}
+
+/* 顶部渐变光条 */
+.input-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-primary);
+  opacity: 0.8;
 }
 
 .input-header {

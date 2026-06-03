@@ -435,9 +435,11 @@ onMounted(() => {
 
   .article-card {
     border-radius: var(--radius-xl);
-    border: 1px solid var(--color-border);
-    box-shadow: var(--shadow-md);
-    background: white;
+    border: var(--glass-border);
+    box-shadow: var(--shadow-lg);
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
 
     :deep(.ant-card-body) {
       padding: 40px;

@@ -452,7 +452,9 @@ onUnmounted(() => {
 
 /* 价格卡片 */
 .pricing-card {
-  background: white;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border-radius: var(--radius-xl);
   padding: 36px 32px;
   box-shadow: var(--shadow-xl);
@@ -613,10 +615,13 @@ onUnmounted(() => {
 
 /* 会员特权 */
 .features-section {
-  background: white;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border-radius: var(--radius-xl);
   padding: 32px;
-  border: 1px solid var(--color-border);
+  border: var(--glass-border);
+  box-shadow: var(--shadow-md);
 }
 
 .features-title {
@@ -645,12 +650,17 @@ onUnmounted(() => {
   align-items: flex-start;
   gap: 14px;
   padding: 20px;
-  background: var(--color-background-secondary);
+  background: var(--glass-bg-green);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(34, 197, 94, 0.15);
   border-radius: var(--radius-lg);
-  transition: all var(--transition-normal);
+  transition: transform var(--transition-bounce), box-shadow var(--transition-normal), background var(--transition-normal);
 
   &:hover {
-    background: rgba(34, 197, 94, 0.06);
+    transform: translateY(-3px);
+    background: rgba(220, 252, 231, 0.9);
+    box-shadow: var(--shadow-card-hover);
   }
 }
 

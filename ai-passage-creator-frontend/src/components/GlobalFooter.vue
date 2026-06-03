@@ -1,6 +1,10 @@
 <template>
   <a-layout-footer class="footer">
     <div class="footer-content">
+      <div class="footer-brand">
+        <span class="brand-name gradient-text">协笔 CoWrite</span>
+        <span class="brand-slogan">生成、确认、再生成 —— AI 人机协同写作</span>
+      </div>
       <p class="copyright">
         <a
           href="https://www.codefather.cn"
@@ -21,9 +25,11 @@
 
 <style scoped>
 .footer {
-  background: var(--color-background);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   text-align: center;
-  padding: 24px 20px;
+  padding: 28px 20px;
   margin-top: 0;
   border-top: 1px solid var(--color-border);
 }
@@ -31,6 +37,27 @@
 .footer-content {
   max-width: 1200px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-name {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.brand-slogan {
+  font-size: 13px;
+  color: var(--color-text-muted);
 }
 
 .copyright {
@@ -46,5 +73,12 @@
 
 .author-link:hover {
   color: var(--color-text);
+}
+
+@media (max-width: 480px) {
+  .footer-brand {
+    flex-direction: column;
+    gap: 4px;
+  }
 }
 </style>

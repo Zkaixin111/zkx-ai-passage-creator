@@ -49,6 +49,44 @@ import { CheckCircleOutlined } from '@ant-design/icons-vue'
   background: linear-gradient(135deg, #22C55E 0%, #16A34A 50%, #15803D 100%);
 }
 
+/* 漂浮光斑装饰 */
+.brand-section::before,
+.brand-section::after {
+  content: '';
+  position: absolute;
+  border-radius: var(--radius-full);
+  filter: blur(70px);
+  opacity: 0.45;
+  animation: brand-float 10s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.brand-section::before {
+  width: 300px;
+  height: 300px;
+  top: -80px;
+  right: -80px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.brand-section::after {
+  width: 200px;
+  height: 200px;
+  bottom: -60px;
+  left: -40px;
+  background: rgba(255, 255, 255, 0.25);
+  animation-delay: -5s;
+}
+
+@keyframes brand-float {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-20px) scale(1.08);
+  }
+}
+
 .brand-bg::before {
   content: '';
   position: absolute;
