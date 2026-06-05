@@ -46,7 +46,10 @@ import { CheckCircleOutlined } from '@ant-design/icons-vue'
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #22C55E 0%, #16A34A 50%, #15803D 100%);
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(220, 252, 231, 0.25) 0%, transparent 45%),
+    linear-gradient(135deg, #22C55E 0%, #16A34A 50%, #15803D 100%);
 }
 
 /* 漂浮光斑装饰 */
@@ -138,10 +141,12 @@ import { CheckCircleOutlined } from '@ant-design/icons-vue'
 
 .brand-features {
   text-align: left;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: var(--radius-lg);
   padding: 20px 24px;
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px) saturate(160%);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
 .feature-item {

@@ -88,6 +88,12 @@ provide('locale', zhCN)
   --glass-bg-green: rgba(220, 252, 231, 0.8);
   --glass-blur: blur(12px);
   --glass-border: 1px solid rgba(255, 255, 255, 0.6);
+
+  /* Aurora 光晕动效色（大模型产品风） */
+  --aurora-1: rgba(34, 197, 94, 0.35);
+  --aurora-2: rgba(56, 189, 248, 0.22);
+  --aurora-3: rgba(163, 230, 53, 0.25);
+  --aurora-4: rgba(129, 140, 248, 0.18);
 }
 
 /* 全局样式优化 */
@@ -105,6 +111,9 @@ body {
   background-color: var(--color-background);
   color: var(--color-text);
   line-height: 1.6;
+  /* 微噪点纹理：大模型产品质感（灰阶噪点叠加） */
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.028'/%3E%3C/svg%3E");
+  background-attachment: fixed;
 }
 
 html {
@@ -149,7 +158,12 @@ a:hover {
 .ant-card {
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
-  transition: all var(--transition-normal);
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.ant-card.hoverable:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-card-hover);
 }
 
 /* 玻璃卡片通用类 */
@@ -160,6 +174,84 @@ a:hover {
   border: var(--glass-border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
+}
+
+/* 渐变描边卡片（大模型产品风：双背景实现彩色描边） */
+.gradient-border-card {
+  position: relative;
+  background: linear-gradient(#fff, #fff) padding-box,
+              linear-gradient(135deg, rgba(34, 197, 94, 0.5), rgba(56, 189, 248, 0.25), rgba(163, 230, 53, 0.4)) border-box;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-xl);
+  transition: transform var(--transition-bounce), box-shadow var(--transition-normal);
+}
+
+.gradient-border-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-glow);
+}
+
+/* Aurora 背景层（慢速漂移光晕） */
+.aurora-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.aurora-bg::before,
+.aurora-bg::after {
+  content: '';
+  position: absolute;
+  border-radius: var(--radius-full);
+  filter: blur(90px);
+  opacity: 0.6;
+  animation: aurora-drift 18s ease-in-out infinite;
+}
+
+.aurora-bg::before {
+  width: 55%;
+  height: 55%;
+  top: -10%;
+  left: -5%;
+  background: var(--aurora-1);
+}
+
+.aurora-bg::after {
+  width: 45%;
+  height: 45%;
+  bottom: -8%;
+  right: -5%;
+  background: var(--aurora-2);
+  animation-delay: -9s;
+}
+
+@keyframes aurora-drift {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(6%, 4%) scale(1.08);
+  }
+  66% {
+    transform: translate(-4%, -3%) scale(0.95);
+  }
+}
+
+/* 发光主按钮 */
+.glow-btn {
+  position: relative;
+  background: var(--gradient-primary) !important;
+  border: none !important;
+  color: white !important;
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2), 0 8px 32px -6px rgba(34, 197, 94, 0.55) !important;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal) !important;
+}
+
+.glow-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3), 0 14px 44px -8px rgba(34, 197, 94, 0.7) !important;
 }
 
 /* 可点击卡片悬浮动效 */

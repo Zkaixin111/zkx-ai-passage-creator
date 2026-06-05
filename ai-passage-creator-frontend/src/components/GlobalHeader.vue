@@ -162,15 +162,27 @@ const doLogout = async () => {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur) saturate(160%);
-  -webkit-backdrop-filter: var(--glass-blur) saturate(160%);
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: var(--glass-blur) saturate(180%);
+  -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
   padding: 0;
   height: 64px;
   line-height: 64px;
   border-bottom: 1px solid var(--color-border);
   transition: all var(--transition-normal);
   overflow: hidden;
+}
+
+/* 顶部渐变光条（品牌色） */
+.header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--gradient-primary);
+  opacity: 0.85;
 }
 
 .header-container {

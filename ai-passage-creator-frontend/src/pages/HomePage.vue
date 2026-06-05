@@ -111,21 +111,26 @@ onMounted(() => {
   <div id="homePage">
     <!-- Hero Section -->
     <div class="hero-section">
-      <div class="hero-bg"></div>
+      <div class="aurora-bg"></div>
+      <!-- 网格背景层 -->
+      <div class="hero-grid" aria-hidden="true"></div>
       <!-- 漂浮光斑装饰 -->
       <div class="orb orb-1" aria-hidden="true"></div>
       <div class="orb orb-2" aria-hidden="true"></div>
       <div class="orb orb-3" aria-hidden="true"></div>
       <div class="container">
         <div class="hero-badge">
-          <ThunderboltOutlined />
+          <span class="badge-dot"></span>
           <span>AI 人机协同写作平台</span>
         </div>
-        <h1 class="hero-title">协笔 <span class="gradient-text">CoWrite</span></h1>
+        <h1 class="hero-title">
+          <span class="title-cn">协笔</span>
+          <span class="title-en">CoWrite</span>
+        </h1>
         <p class="hero-subtitle">生成、确认、再生成 —— 每一步都由你掌控</p>
 
-        <!-- 核心输入框 -->
-        <div class="input-wrapper">
+        <!-- 核心输入框（发光质感） -->
+        <div class="input-wrapper glow-shell">
           <a-input
             v-model:value="topic"
             placeholder="输入您想创作的文章选题，例如：2026年AI如何改变职场"
@@ -237,9 +242,10 @@ onMounted(() => {
 /* Hero Section */
 .hero-section {
   position: relative;
-  padding: 80px 20px 100px;
+  padding: 88px 20px 110px;
   text-align: center;
   overflow: hidden;
+  background: linear-gradient(180deg, #F0FDF4 0%, var(--color-background) 100%);
 }
 
 .hero-bg {
@@ -250,6 +256,20 @@ onMounted(() => {
   bottom: 0;
   background: var(--gradient-hero);
   z-index: 0;
+}
+
+/* 网格背景层（极淡，营造大模型产品氛围） */
+.hero-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(34, 197, 94, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 197, 94, 0.05) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 75%);
 }
 
 /* 漂浮光斑 */
@@ -309,47 +329,92 @@ onMounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
-  background: rgba(34, 197, 94, 0.1);
-  border: 1px solid rgba(34, 197, 94, 0.2);
+  padding: 8px 18px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--shadow-sm);
   border-radius: var(--radius-full);
   font-size: 14px;
   font-weight: 500;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
   color: var(--color-primary-dark);
 }
 
+/* badge 呼吸圆点 */
+.badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes badge-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
 .hero-title {
-  font-size: 52px;
-  font-weight: 700;
-  margin: 0 0 16px;
-  letter-spacing: -1.5px;
-  line-height: 1.1;
+  font-size: clamp(44px, 7vw, 72px);
+  font-weight: 800;
+  margin: 0 0 18px;
+  letter-spacing: -2px;
+  line-height: 1.05;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 18px;
+}
+
+.title-cn {
   color: var(--color-text);
-  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+}
+
+.title-en {
+  background: var(--gradient-text);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
   background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -3px;
 }
 
 .hero-subtitle {
   font-size: 20px;
-  margin: 0 0 40px;
+  margin: 0 0 44px;
   color: var(--color-text-secondary);
   font-weight: 400;
 }
 
-/* 核心输入框 */
+/* 核心输入框（发光外壳） */
 .input-wrapper {
   display: flex;
   gap: 12px;
   max-width: 700px;
-  margin: 0 auto 20px;
+  margin: 0 auto 24px;
   padding: 8px;
-  background: white;
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--color-border);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-radius: var(--radius-2xl);
+  border: var(--glass-border);
+  transition: box-shadow var(--transition-normal), border-color var(--transition-normal);
+}
+
+/* 聚焦时绿色光晕扩散 */
+.glow-shell:focus-within {
+  border-color: rgba(34, 197, 94, 0.35);
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.08), 0 16px 48px -12px rgba(34, 197, 94, 0.35);
 }
 
 .topic-input {
@@ -379,12 +444,12 @@ onMounted(() => {
   background: var(--gradient-primary) !important;
   border: none !important;
   color: white !important;
-  box-shadow: var(--shadow-green) !important;
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2), 0 8px 32px -6px rgba(34, 197, 94, 0.55) !important;
   display: flex;
   align-items: center;
   gap: 8px;
   white-space: nowrap;
-  transition: opacity var(--transition-normal) !important;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal), opacity var(--transition-normal) !important;
 }
 
 .cta-btn:hover,
@@ -393,8 +458,9 @@ onMounted(() => {
   background: var(--gradient-primary) !important;
   border: none !important;
   color: white !important;
-  box-shadow: var(--shadow-green) !important;
-  opacity: 0.92;
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3), 0 14px 44px -8px rgba(34, 197, 94, 0.7) !important;
+  opacity: 0.95;
 }
 
 .cta-btn :deep(.ant-wave) {
@@ -409,8 +475,22 @@ onMounted(() => {
 
 /* Features Section */
 .features-section {
-  padding: 80px 20px;
+  position: relative;
+  padding: 96px 20px;
   background: var(--color-background-secondary);
+  overflow: hidden;
+}
+
+/* section 顶部细光带分隔 */
+.features-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.35), transparent);
 }
 
 .features-section .container {
@@ -419,30 +499,34 @@ onMounted(() => {
 
 .section-header {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 52px;
 }
 
 .section-badge {
   display: inline-block;
-  padding: 6px 14px;
-  background: rgba(34, 197, 94, 0.1);
+  padding: 6px 16px;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
   border-radius: var(--radius-full);
   font-size: 13px;
   font-weight: 600;
   color: var(--color-primary-dark);
-  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 18px;
 }
 
 .section-title {
-  font-size: 32px;
-  font-weight: 700;
-  margin: 0 0 12px;
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 800;
+  margin: 0 0 14px;
   color: var(--color-text);
-  letter-spacing: -0.5px;
+  letter-spacing: -1px;
 }
 
 .section-subtitle {
-  font-size: 16px;
+  font-size: 17px;
   color: var(--color-text-secondary);
   margin: 0;
 }
@@ -456,39 +540,40 @@ onMounted(() => {
 .feature-card {
   position: relative;
   overflow: hidden;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: var(--glass-border);
+  /* 渐变描边卡片 */
+  background: linear-gradient(#fff, #fff) padding-box,
+              linear-gradient(135deg, rgba(34, 197, 94, 0.45), rgba(56, 189, 248, 0.2), rgba(163, 230, 53, 0.4)) border-box;
+  border: 1.5px solid transparent;
   border-radius: var(--radius-xl);
-  padding: 24px;
+  padding: 26px;
   display: flex;
   gap: 16px;
   align-items: flex-start;
-  transition: transform var(--transition-bounce), box-shadow var(--transition-normal), border-color var(--transition-normal);
+  transition: transform var(--transition-bounce), box-shadow var(--transition-normal);
   cursor: pointer;
 }
 
-/* 卡片顶部渐变光条 */
-.feature-card::before {
+/* 卡片右上角光晕（hover 浮现） */
+.feature-card::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--gradient-primary);
+  top: -40px;
+  right: -40px;
+  width: 120px;
+  height: 120px;
+  border-radius: var(--radius-full);
+  background: radial-gradient(circle, rgba(34, 197, 94, 0.16) 0%, transparent 70%);
   opacity: 0;
   transition: opacity var(--transition-normal);
+  pointer-events: none;
 }
 
 .feature-card:hover {
-  transform: translateY(-5px);
-  border-color: rgba(34, 197, 94, 0.35);
+  transform: translateY(-6px);
   box-shadow: var(--shadow-glow);
 }
 
-.feature-card:hover::before {
+.feature-card:hover::after {
   opacity: 1;
 }
 
