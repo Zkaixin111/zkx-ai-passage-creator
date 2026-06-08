@@ -17,57 +17,57 @@ provide('locale', zhCN)
 /* 引入 Google Fonts - Geometric Modern */
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Work+Sans:wght@300;400;500;600;700&display=swap');
 
-/* 全局CSS变量 - 清新绿色配色方案 */
+/* 全局CSS变量 - 暖棕浅色配色方案（Claude 式极简暖调） */
 :root {
-  /* 品牌色 - 绿色系 */
-  --color-primary: #22C55E;
-  --color-primary-light: #4ADE80;
-  --color-primary-dark: #16A34A;
-  --color-secondary: #0F172A;
-  --color-secondary-light: #334155;
+  /* 品牌色 - 棕色系 */
+  --color-primary: #B45309;
+  --color-primary-light: #D97757;
+  --color-primary-dark: #92400E;
+  --color-secondary: #292524;
+  --color-secondary-light: #57534E;
 
   /* 功能色 */
-  --color-cta: #22C55E;
-  --color-success: #22C55E;
-  --color-warning: #EAB308;
-  --color-error: #EF4444;
-  --color-info: #3B82F6;
+  --color-cta: #B45309;
+  --color-success: #B45309;
+  --color-warning: #D97706;
+  --color-error: #DC2626;
+  --color-info: #2563EB;
 
-  /* 中性色 */
-  --color-background: #FFFFFF;
-  --color-background-secondary: #F8FAFC;
-  --color-background-tertiary: #F1F5F9;
-  --color-background-dark: #0F172A;
-  --color-text: #0F172A;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94A3B8;
-  --color-border: #E2E8F0;
-  --color-border-light: #F1F5F9;
+  /* 中性色（暖调） */
+  --color-background: #FAFAF9;
+  --color-background-secondary: #F5F5F4;
+  --color-background-tertiary: #EDEDEA;
+  --color-background-dark: #292524;
+  --color-text: #292524;
+  --color-text-secondary: #57534E;
+  --color-text-muted: #A8A29E;
+  --color-border: #E7E5E4;
+  --color-border-light: #F5F5F4;
 
   /* 渐变 */
-  --gradient-primary: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
-  --gradient-hero: linear-gradient(180deg, #DCFCE7 0%, #FFFFFF 100%);
-  --gradient-hero-dark: linear-gradient(180deg, #166534 0%, #14532D 100%);
-  --gradient-text: linear-gradient(135deg, #16A34A 0%, #22C55E 50%, #4ADE80 100%);
-  --gradient-glow: radial-gradient(circle at 30% 20%, rgba(34, 197, 94, 0.18) 0%, transparent 45%),
-                   radial-gradient(circle at 70% 80%, rgba(74, 222, 128, 0.14) 0%, transparent 40%);
+  --gradient-primary: linear-gradient(135deg, #B45309 0%, #92400E 100%);
+  --gradient-hero: linear-gradient(180deg, #FDF6EF 0%, #FAFAF9 100%);
+  --gradient-hero-dark: linear-gradient(180deg, #78350F 0%, #451A03 100%);
+  --gradient-text: linear-gradient(135deg, #92400E 0%, #B45309 50%, #D97757 100%);
+  --gradient-glow: radial-gradient(circle at 30% 20%, rgba(180, 83, 9, 0.12) 0%, transparent 45%),
+                   radial-gradient(circle at 70% 80%, rgba(217, 119, 87, 0.1) 0%, transparent 40%);
 
   /* 纯色背景 */
-  --bg-primary: #22C55E;
-  --bg-primary-hover: #16A34A;
-  --bg-dark: #0F172A;
-  --bg-dark-hover: #1E293B;
-  --bg-success: #22C55E;
+  --bg-primary: #B45309;
+  --bg-primary-hover: #92400E;
+  --bg-dark: #292524;
+  --bg-dark-hover: #44403C;
+  --bg-success: #B45309;
 
-  /* 阴影 */
+  /* 阴影（暖棕调） */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-card-hover: 0 8px 24px rgba(34, 197, 94, 0.15);
-  --shadow-green: 0 4px 14px rgba(34, 197, 94, 0.25);
-  --shadow-glow: 0 0 0 1px rgba(34, 197, 94, 0.12), 0 12px 40px -8px rgba(34, 197, 94, 0.28);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-card-hover: 0 8px 24px rgba(180, 83, 9, 0.12);
+  --shadow-green: 0 4px 14px rgba(180, 83, 9, 0.2);
+  --shadow-glow: 0 0 0 1px rgba(180, 83, 9, 0.1), 0 12px 40px -8px rgba(180, 83, 9, 0.22);
 
   /* 圆角 */
   --radius-sm: 6px;
@@ -84,16 +84,16 @@ provide('locale', zhCN)
   --transition-bounce: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
   /* 毛玻璃 */
-  --glass-bg: rgba(255, 255, 255, 0.9);
-  --glass-bg-green: rgba(220, 252, 231, 0.8);
+  --glass-bg: rgba(250, 250, 249, 0.85);
+  --glass-bg-green: rgba(254, 243, 199, 0.75);
   --glass-blur: blur(12px);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.6);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.7);
 
-  /* Aurora 光晕动效色（大模型产品风） */
-  --aurora-1: rgba(34, 197, 94, 0.35);
-  --aurora-2: rgba(56, 189, 248, 0.22);
-  --aurora-3: rgba(163, 230, 53, 0.25);
-  --aurora-4: rgba(129, 140, 248, 0.18);
+  /* Aurora 光晕动效色（暖棕调） */
+  --aurora-1: rgba(180, 83, 9, 0.28);
+  --aurora-2: rgba(249, 115, 22, 0.18);
+  --aurora-3: rgba(217, 119, 87, 0.22);
+  --aurora-4: rgba(234, 179, 8, 0.14);
 }
 
 /* 全局样式优化 */
@@ -151,7 +151,7 @@ a:hover {
 .ant-btn-primary:not(:disabled):hover {
   background: var(--bg-primary-hover);
   border-color: var(--bg-primary-hover);
-  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
+  box-shadow: 0 6px 20px rgba(180, 83, 9, 0.35);
 }
 
 /* 全局卡片增强 */
@@ -180,7 +180,7 @@ a:hover {
 .gradient-border-card {
   position: relative;
   background: linear-gradient(#fff, #fff) padding-box,
-              linear-gradient(135deg, rgba(34, 197, 94, 0.5), rgba(56, 189, 248, 0.25), rgba(163, 230, 53, 0.4)) border-box;
+              linear-gradient(135deg, rgba(180, 83, 9, 0.5), rgba(249, 115, 22, 0.25), rgba(217, 119, 87, 0.4)) border-box;
   border: 1.5px solid transparent;
   border-radius: var(--radius-xl);
   transition: transform var(--transition-bounce), box-shadow var(--transition-normal);
@@ -245,13 +245,13 @@ a:hover {
   background: var(--gradient-primary) !important;
   border: none !important;
   color: white !important;
-  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2), 0 8px 32px -6px rgba(34, 197, 94, 0.55) !important;
+  box-shadow: 0 0 0 1px rgba(180, 83, 9, 0.2), 0 8px 32px -6px rgba(180, 83, 9, 0.55) !important;
   transition: transform var(--transition-normal), box-shadow var(--transition-normal) !important;
 }
 
 .glow-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3), 0 14px 44px -8px rgba(34, 197, 94, 0.7) !important;
+  box-shadow: 0 0 0 1px rgba(180, 83, 9, 0.3), 0 14px 44px -8px rgba(180, 83, 9, 0.7) !important;
 }
 
 /* 可点击卡片悬浮动效 */
@@ -289,13 +289,13 @@ a:hover {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(34, 197, 94, 0.25);
+  background: rgba(180, 83, 9, 0.25);
   border-radius: var(--radius-full);
   transition: background var(--transition-fast);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(34, 197, 94, 0.45);
+  background: rgba(180, 83, 9, 0.45);
 }
 
 /* 可点击元素统一cursor */
@@ -309,7 +309,7 @@ button,
 
 /* 选中状态 */
 ::selection {
-  background: rgba(34, 197, 94, 0.2);
+  background: rgba(180, 83, 9, 0.2);
   color: var(--color-text);
 }
 
@@ -362,7 +362,7 @@ button,
 .ant-input-affix-wrapper:focus,
 .ant-input-affix-wrapper-focused {
   border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.1) !important;
+  box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.1) !important;
 }
 
 .ant-input:hover {

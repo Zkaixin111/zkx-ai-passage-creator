@@ -153,7 +153,7 @@ const handleConfirm = async () => {
 
       &.ant-radio-wrapper-checked {
         border-color: var(--color-primary);
-        background: rgba(34, 197, 94, 0.04);
+        background: rgba(180, 83, 9, 0.04);
       }
     }
 

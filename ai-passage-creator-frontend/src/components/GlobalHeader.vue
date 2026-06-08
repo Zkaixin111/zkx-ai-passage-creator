@@ -276,7 +276,7 @@ const doLogout = async () => {
 
 .nav-item.active {
   color: var(--color-primary-dark);
-  background: rgba(34, 197, 94, 0.1);
+  background: rgba(180, 83, 9, 0.1);
 }
 
 .nav-item.active::after {
@@ -316,7 +316,7 @@ const doLogout = async () => {
   transition: all var(--transition-fast);
 
   &:hover {
-    background: rgba(34, 197, 94, 0.08);
+    background: rgba(180, 83, 9, 0.08);
     color: var(--color-primary-dark);
   }
 
@@ -386,7 +386,7 @@ const doLogout = async () => {
 
 .login-btn:hover {
   color: white;
-  box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
+  box-shadow: 0 6px 20px rgba(180, 83, 9, 0.35);
 }
 
 .dropdown-menu {
@@ -410,12 +410,12 @@ const doLogout = async () => {
 
 .vip-info-item {
   color: var(--color-primary-dark);
-  background: rgba(34, 197, 94, 0.1);
+  background: rgba(180, 83, 9, 0.1);
   font-weight: 600;
   cursor: default;
 
   &:hover {
-    background: rgba(34, 197, 94, 0.15);
+    background: rgba(180, 83, 9, 0.15);
   }
 }
 

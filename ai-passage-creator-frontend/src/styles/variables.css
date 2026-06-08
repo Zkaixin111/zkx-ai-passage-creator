@@ -7,15 +7,15 @@
 
 :root {
   /* 品牌色 - 绿色系 */
-  --color-primary: #22C55E;
-  --color-primary-light: #4ADE80;
-  --color-primary-dark: #16A34A;
+  --color-primary: #B45309;
+  --color-primary-light: #D97757;
+  --color-primary-dark: #92400E;
   --color-secondary: #0F172A;
   --color-secondary-light: #334155;
 
   /* 功能色 */
-  --color-cta: #22C55E;
-  --color-success: #22C55E;
+  --color-cta: #B45309;
+  --color-success: #B45309;
   --color-warning: #EAB308;
   --color-error: #EF4444;
   --color-info: #3B82F6;
@@ -32,16 +32,16 @@
   --color-border-light: #F1F5F9;
 
   /* 渐变 */
-  --gradient-primary: linear-gradient(135deg, #22C55E 0%, #16A34A 100%);
-  --gradient-hero: linear-gradient(180deg, #DCFCE7 0%, #FFFFFF 100%);
-  --gradient-hero-dark: linear-gradient(180deg, #166534 0%, #14532D 100%);
+  --gradient-primary: linear-gradient(135deg, #B45309 0%, #92400E 100%);
+  --gradient-hero: linear-gradient(180deg, #FDF6EF 0%, #FFFFFF 100%);
+  --gradient-hero-dark: linear-gradient(180deg, #78350F 0%, #451A03 100%);
 
   /* 纯色背景 */
-  --bg-primary: #22C55E;
-  --bg-primary-hover: #16A34A;
+  --bg-primary: #B45309;
+  --bg-primary-hover: #92400E;
   --bg-dark: #0F172A;
   --bg-dark-hover: #1E293B;
-  --bg-success: #22C55E;
+  --bg-success: #B45309;
 
   /* 阴影 */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -49,8 +49,8 @@
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-card-hover: 0 8px 24px rgba(34, 197, 94, 0.15);
-  --shadow-green: 0 4px 14px rgba(34, 197, 94, 0.25);
+  --shadow-card-hover: 0 8px 24px rgba(180, 83, 9, 0.15);
+  --shadow-green: 0 4px 14px rgba(180, 83, 9, 0.25);
 
   /* 圆角 */
   --radius-sm: 6px;

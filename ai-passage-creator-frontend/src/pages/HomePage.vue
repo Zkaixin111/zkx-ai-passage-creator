@@ -62,25 +62,25 @@ const formatTime = (time: string | undefined) => {
   return dayjs(time).format('MM-DD HH:mm')
 }
 
-// 功能卡片数据
+// 功能卡片数据（暖调色板）
 const features = [
   {
     icon: FileTextOutlined,
     title: '标题由你定',
     description: 'AI 生成多个候选标题，确认后再继续，选题方向牢牢握在自己手里',
-    color: '#22C55E'
+    color: '#B45309'
   },
   {
     icon: OrderedListOutlined,
     title: '大纲可编辑',
     description: '流式生成大纲，支持编辑与 AI 二次修改，结构满意才进入正文',
-    color: '#3B82F6'
+    color: '#D97757'
   },
   {
     icon: EditOutlined,
     title: '正文实时生成',
     description: '打字机式流式输出，创作过程全程可见，随时掌握生成进度',
-    color: '#8B5CF6'
+    color: '#C2410C'
   },
   {
     icon: PictureOutlined,
@@ -92,13 +92,13 @@ const features = [
     icon: ThunderboltOutlined,
     title: '多智能体协作',
     description: '6 步智能体流水线编排，StateGraph 调度，多图并行获取不卡顿',
-    color: '#EF4444'
+    color: '#EA580C'
   },
   {
     icon: ClockCircleOutlined,
     title: '历史管理',
     description: '随时查看和管理所有创作记录，一键回顾每次协同创作过程',
-    color: '#06B6D4'
+    color: '#92400E'
   }
 ]
 
@@ -109,46 +109,83 @@ onMounted(() => {
 
 <template>
   <div id="homePage">
-    <!-- Hero Section -->
+    <!-- Hero Section（非对称分割：左文右可视化） -->
     <div class="hero-section">
       <div class="aurora-bg"></div>
-      <!-- 网格背景层 -->
       <div class="hero-grid" aria-hidden="true"></div>
-      <!-- 漂浮光斑装饰 -->
-      <div class="orb orb-1" aria-hidden="true"></div>
-      <div class="orb orb-2" aria-hidden="true"></div>
-      <div class="orb orb-3" aria-hidden="true"></div>
       <div class="container">
-        <div class="hero-badge">
-          <span class="badge-dot"></span>
-          <span>AI 人机协同写作平台</span>
-        </div>
-        <h1 class="hero-title">
-          <span class="title-cn">协笔</span>
-          <span class="title-en">CoWrite</span>
-        </h1>
-        <p class="hero-subtitle">生成、确认、再生成 —— 每一步都由你掌控</p>
+        <div class="hero-split">
+          <!-- 左栏：文字与输入 -->
+          <div class="hero-left">
+            <div class="hero-badge">
+              <span class="badge-dot"></span>
+              <span>AI 人机协同写作平台</span>
+            </div>
+            <h1 class="hero-title">
+              <span class="title-cn">协笔</span>
+              <span class="title-en">CoWrite</span>
+            </h1>
+            <p class="hero-subtitle">生成、确认、再生成 —— 每一步都由你掌控</p>
 
-        <!-- 核心输入框（发光质感） -->
-        <div class="input-wrapper glow-shell">
-          <a-input
-            v-model:value="topic"
-            placeholder="输入您想创作的文章选题，例如：2026年AI如何改变职场"
-            size="large"
-            class="topic-input"
-            @pressEnter="goToCreate"
-          >
-            <template #prefix>
-              <EditOutlined class="input-icon" />
-            </template>
-          </a-input>
-          <a-button type="primary" size="large" @click="goToCreate" class="cta-btn">
-            <RocketOutlined />
-            开始创作
-          </a-button>
-        </div>
+            <div class="input-wrapper glow-shell">
+              <a-input
+                v-model:value="topic"
+                placeholder="输入您想创作的文章选题，例如：2026年AI如何改变职场"
+                size="large"
+                class="topic-input"
+                @pressEnter="goToCreate"
+              >
+                <template #prefix>
+                  <EditOutlined class="input-icon" />
+                </template>
+              </a-input>
+              <a-button type="primary" size="large" @click="goToCreate" class="cta-btn">
+                <RocketOutlined />
+                开始创作
+              </a-button>
+            </div>
 
-        <p class="hero-tips">工作总结、心得体会、演讲稿、分析报告... 标题大纲自己拍板，AI 全力辅助</p>
+            <p class="hero-tips">工作总结、心得体会、演讲稿、分析报告... 标题大纲自己拍板，AI 全力辅助</p>
+          </div>
+
+          <!-- 右栏：创作流程可视化（非对称卡片组） -->
+          <div class="hero-right">
+            <div class="flow-visual" aria-hidden="true">
+              <div class="flow-card flow-card-1">
+                <span class="flow-step">01</span>
+                <div class="flow-body">
+                  <span class="flow-label">生成标题</span>
+                  <span class="flow-value">AI 产出 3 个方案</span>
+                </div>
+              </div>
+              <div class="flow-card flow-card-2">
+                <span class="flow-step">02</span>
+                <div class="flow-body">
+                  <span class="flow-label">你确认</span>
+                  <span class="flow-value">选定一个继续</span>
+                </div>
+              </div>
+              <div class="flow-card flow-card-3">
+                <span class="flow-step">03</span>
+                <div class="flow-body">
+                  <span class="flow-label">生成大纲</span>
+                  <span class="flow-value">流式输出可编辑</span>
+                </div>
+              </div>
+              <div class="flow-card flow-card-4">
+                <span class="flow-step">04</span>
+                <div class="flow-body">
+                  <span class="flow-label">配图合成</span>
+                  <span class="flow-value">图文一键成稿</span>
+                </div>
+              </div>
+              <!-- 流程连线装饰 -->
+              <div class="flow-line line-1"></div>
+              <div class="flow-line line-2"></div>
+              <div class="flow-line line-3"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -239,13 +276,12 @@ onMounted(() => {
   background: var(--color-background);
 }
 
-/* Hero Section */
+/* Hero Section（非对称分割） */
 .hero-section {
   position: relative;
   padding: 88px 20px 110px;
-  text-align: center;
   overflow: hidden;
-  background: linear-gradient(180deg, #F0FDF4 0%, var(--color-background) 100%);
+  background: linear-gradient(180deg, #FDF6EF 0%, var(--color-background) 100%);
 }
 
 .hero-bg {
@@ -265,65 +301,132 @@ onMounted(() => {
   z-index: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(34, 197, 94, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(34, 197, 94, 0.05) 1px, transparent 1px);
+    linear-gradient(rgba(180, 83, 9, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180, 83, 9, 0.05) 1px, transparent 1px);
   background-size: 56px 56px;
   mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 75%);
   -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 30%, transparent 75%);
 }
 
-/* 漂浮光斑 */
-.orb {
-  position: absolute;
-  border-radius: var(--radius-full);
-  filter: blur(60px);
-  opacity: 0.55;
-  z-index: 0;
-  pointer-events: none;
-  animation: orb-float 12s ease-in-out infinite;
+/* 非对称分割容器 */
+.hero-split {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 64px;
+  align-items: center;
+  text-align: left;
 }
 
-.orb-1 {
-  width: 320px;
-  height: 320px;
-  top: -60px;
-  left: -80px;
-  background: rgba(74, 222, 128, 0.5);
-}
-
-.orb-2 {
-  width: 240px;
-  height: 240px;
-  top: 40px;
-  right: -60px;
-  background: rgba(34, 197, 94, 0.4);
-  animation-delay: -4s;
-}
-
-.orb-3 {
-  width: 180px;
-  height: 180px;
-  bottom: -40px;
-  left: 40%;
-  background: rgba(163, 230, 53, 0.35);
-  animation-delay: -8s;
-}
-
-@keyframes orb-float {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-24px) scale(1.06);
-  }
+.hero-left {
+  position: relative;
+  z-index: 1;
 }
 
 .container {
   position: relative;
   z-index: 1;
-  max-width: 900px;
+  max-width: 1100px;
   margin: 0 auto;
 }
+
+/* 右栏流程可视化 */
+.hero-right {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.flow-visual {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding: 24px 0;
+}
+
+.flow-card {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  background: linear-gradient(#fff, #fff) padding-box,
+              linear-gradient(135deg, rgba(180, 83, 9, 0.4), rgba(249, 115, 22, 0.2), rgba(217, 119, 87, 0.35)) border-box;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  margin-bottom: 16px;
+  transition: transform var(--transition-bounce), box-shadow var(--transition-normal);
+  animation: card-slide-in 0.6s ease-out both;
+}
+
+.flow-card:hover {
+  transform: translateX(6px);
+  box-shadow: var(--shadow-glow);
+}
+
+.flow-card-1 { animation-delay: 0.1s; }
+.flow-card-2 { animation-delay: 0.25s; }
+.flow-card-3 { animation-delay: 0.4s; }
+.flow-card-4 { animation-delay: 0.55s; }
+
+@keyframes card-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.flow-step {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--gradient-primary);
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+  box-shadow: 0 4px 12px rgba(180, 83, 9, 0.3);
+}
+
+.flow-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.flow-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.flow-value {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* 流程连线装饰 */
+.flow-line {
+  position: absolute;
+  left: 39px;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(180, 83, 9, 0.35), rgba(180, 83, 9, 0.1));
+  z-index: 1;
+}
+
+.line-1 { top: 56px; height: 20px; }
+.line-2 { top: 132px; height: 20px; }
+.line-3 { top: 208px; height: 20px; }
 
 .hero-badge {
   display: inline-flex;
@@ -348,31 +451,31 @@ onMounted(() => {
   height: 8px;
   border-radius: var(--radius-full);
   background: var(--color-primary);
-  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5);
+  box-shadow: 0 0 0 0 rgba(180, 83, 9, 0.5);
   animation: badge-pulse 2s ease-in-out infinite;
 }
 
 @keyframes badge-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45);
+    box-shadow: 0 0 0 0 rgba(180, 83, 9, 0.45);
   }
   70% {
-    box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+    box-shadow: 0 0 0 8px rgba(180, 83, 9, 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    box-shadow: 0 0 0 0 rgba(180, 83, 9, 0);
   }
 }
 
 .hero-title {
-  font-size: clamp(44px, 7vw, 72px);
+  font-size: clamp(44px, 5.5vw, 68px);
   font-weight: 800;
   margin: 0 0 18px;
   letter-spacing: -2px;
   line-height: 1.05;
   display: flex;
   align-items: baseline;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 18px;
 }
 
@@ -400,8 +503,8 @@ onMounted(() => {
 .input-wrapper {
   display: flex;
   gap: 12px;
-  max-width: 700px;
-  margin: 0 auto 24px;
+  max-width: 100%;
+  margin: 0 0 24px;
   padding: 8px;
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur);
@@ -413,8 +516,8 @@ onMounted(() => {
 
 /* 聚焦时绿色光晕扩散 */
 .glow-shell:focus-within {
-  border-color: rgba(34, 197, 94, 0.35);
-  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.08), 0 16px 48px -12px rgba(34, 197, 94, 0.35);
+  border-color: rgba(180, 83, 9, 0.35);
+  box-shadow: 0 0 0 4px rgba(180, 83, 9, 0.08), 0 16px 48px -12px rgba(180, 83, 9, 0.35);
 }
 
 .topic-input {
@@ -444,7 +547,7 @@ onMounted(() => {
   background: var(--gradient-primary) !important;
   border: none !important;
   color: white !important;
-  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.2), 0 8px 32px -6px rgba(34, 197, 94, 0.55) !important;
+  box-shadow: 0 0 0 1px rgba(180, 83, 9, 0.2), 0 8px 32px -6px rgba(180, 83, 9, 0.55) !important;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -459,7 +562,7 @@ onMounted(() => {
   border: none !important;
   color: white !important;
   transform: translateY(-2px);
-  box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.3), 0 14px 44px -8px rgba(34, 197, 94, 0.7) !important;
+  box-shadow: 0 0 0 1px rgba(180, 83, 9, 0.3), 0 14px 44px -8px rgba(180, 83, 9, 0.7) !important;
   opacity: 0.95;
 }
 
@@ -490,7 +593,7 @@ onMounted(() => {
   transform: translateX(-50%);
   width: 60%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.35), transparent);
+  background: linear-gradient(90deg, transparent, rgba(180, 83, 9, 0.35), transparent);
 }
 
 .features-section .container {
@@ -534,7 +637,19 @@ onMounted(() => {
 .features-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  grid-auto-rows: auto;
   gap: 20px;
+}
+
+/* 非对称错落：第 1/4 张卡下沉，制造节奏感 */
+.feature-card:nth-child(1),
+.feature-card:nth-child(4) {
+  transform: translateY(12px);
+}
+
+.feature-card:nth-child(1):hover,
+.feature-card:nth-child(4):hover {
+  transform: translateY(6px);
 }
 
 .feature-card {
@@ -542,7 +657,7 @@ onMounted(() => {
   overflow: hidden;
   /* 渐变描边卡片 */
   background: linear-gradient(#fff, #fff) padding-box,
-              linear-gradient(135deg, rgba(34, 197, 94, 0.45), rgba(56, 189, 248, 0.2), rgba(163, 230, 53, 0.4)) border-box;
+              linear-gradient(135deg, rgba(180, 83, 9, 0.45), rgba(249, 115, 22, 0.2), rgba(217, 119, 87, 0.4)) border-box;
   border: 1.5px solid transparent;
   border-radius: var(--radius-xl);
   padding: 26px;
@@ -562,7 +677,7 @@ onMounted(() => {
   width: 120px;
   height: 120px;
   border-radius: var(--radius-full);
-  background: radial-gradient(circle, rgba(34, 197, 94, 0.16) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(180, 83, 9, 0.16) 0%, transparent 70%);
   opacity: 0;
   transition: opacity var(--transition-normal);
   pointer-events: none;
@@ -589,7 +704,7 @@ onMounted(() => {
 }
 
 .feature-card:hover .feature-icon-wrapper {
-  background: rgba(34, 197, 94, 0.1);
+  background: rgba(180, 83, 9, 0.1);
 }
 
 .feature-icon {
@@ -744,7 +859,7 @@ onMounted(() => {
 }
 
 .article-status.status-completed {
-  background: rgba(34, 197, 94, 0.1);
+  background: rgba(180, 83, 9, 0.1);
   color: var(--color-primary-dark);
 }
 
@@ -760,6 +875,22 @@ onMounted(() => {
 
 /* Responsive */
 @media (max-width: 992px) {
+  .hero-split {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    text-align: center;
+  }
+
+  .hero-title {
+    justify-content: center;
+  }
+
+  .hero-left .input-wrapper {
+    max-width: 560px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
   .features-grid {
     grid-template-columns: repeat(2, 1fr);
   }
