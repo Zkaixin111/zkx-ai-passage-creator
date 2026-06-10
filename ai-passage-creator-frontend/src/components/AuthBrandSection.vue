@@ -48,7 +48,7 @@ import { CheckCircleOutlined } from '@ant-design/icons-vue'
   bottom: 0;
   background:
     radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18) 0%, transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(220, 252, 231, 0.25) 0%, transparent 45%),
+    radial-gradient(circle at 80% 70%, rgba(254, 243, 199, 0.28) 0%, transparent 45%),
     linear-gradient(135deg, #B45309 0%, #92400E 50%, #78350F 100%);
 }
 

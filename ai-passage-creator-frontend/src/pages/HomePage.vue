@@ -62,7 +62,7 @@ const formatTime = (time: string | undefined) => {
   return dayjs(time).format('MM-DD HH:mm')
 }
 
-// 功能卡片数据（暖调色板）
+// 功能卡片数据（暖主 + 冷点缀，避免全暖腻味）
 const features = [
   {
     icon: FileTextOutlined,
@@ -74,31 +74,31 @@ const features = [
     icon: OrderedListOutlined,
     title: '大纲可编辑',
     description: '流式生成大纲，支持编辑与 AI 二次修改，结构满意才进入正文',
-    color: '#D97757'
+    color: '#0F766E'
   },
   {
     icon: EditOutlined,
     title: '正文实时生成',
     description: '打字机式流式输出，创作过程全程可见，随时掌握生成进度',
-    color: '#C2410C'
+    color: '#D97757'
   },
   {
     icon: PictureOutlined,
     title: '配图自己选',
     description: '读完正文后再选择配图方式，Pexels / AI 生图 / 图标 / 表情包等多种来源',
-    color: '#F59E0B'
+    color: '#0369A1'
   },
   {
     icon: ThunderboltOutlined,
     title: '多智能体协作',
     description: '6 步智能体流水线编排，StateGraph 调度，多图并行获取不卡顿',
-    color: '#EA580C'
+    color: '#C2410C'
   },
   {
     icon: ClockCircleOutlined,
     title: '历史管理',
     description: '随时查看和管理所有创作记录，一键回顾每次协同创作过程',
-    color: '#92400E'
+    color: '#6D28D9'
   }
 ]
 
@@ -281,7 +281,7 @@ onMounted(() => {
   position: relative;
   padding: 88px 20px 110px;
   overflow: hidden;
-  background: linear-gradient(180deg, #FDF6EF 0%, var(--color-background) 100%);
+  background: linear-gradient(180deg, #FBF7F2 0%, var(--color-background) 100%);
 }
 
 .hero-bg {
@@ -352,7 +352,7 @@ onMounted(() => {
   gap: 16px;
   padding: 18px 20px;
   background: linear-gradient(#fff, #fff) padding-box,
-              linear-gradient(135deg, rgba(180, 83, 9, 0.4), rgba(249, 115, 22, 0.2), rgba(217, 119, 87, 0.35)) border-box;
+              linear-gradient(135deg, rgba(180, 83, 9, 0.35), rgba(217, 119, 87, 0.15)) border-box;
   border: 1.5px solid transparent;
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-md);
@@ -657,7 +657,7 @@ onMounted(() => {
   overflow: hidden;
   /* 渐变描边卡片 */
   background: linear-gradient(#fff, #fff) padding-box,
-              linear-gradient(135deg, rgba(180, 83, 9, 0.45), rgba(249, 115, 22, 0.2), rgba(217, 119, 87, 0.4)) border-box;
+              linear-gradient(135deg, rgba(180, 83, 9, 0.4), rgba(217, 119, 87, 0.18)) border-box;
   border: 1.5px solid transparent;
   border-radius: var(--radius-xl);
   padding: 26px;

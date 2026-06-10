@@ -33,12 +33,12 @@ provide('locale', zhCN)
   --color-error: #DC2626;
   --color-info: #2563EB;
 
-  /* 中性色（暖调） */
-  --color-background: #FAFAF9;
+  /* 中性色（暖灰底，棕色仅作品牌强调） */
+  --color-background: #FCFCFB;
   --color-background-secondary: #F5F5F4;
-  --color-background-tertiary: #EDEDEA;
+  --color-background-tertiary: #EFEFED;
   --color-background-dark: #292524;
-  --color-text: #292524;
+  --color-text: #1C1917;
   --color-text-secondary: #57534E;
   --color-text-muted: #A8A29E;
   --color-border: #E7E5E4;
@@ -46,11 +46,11 @@ provide('locale', zhCN)
 
   /* 渐变 */
   --gradient-primary: linear-gradient(135deg, #B45309 0%, #92400E 100%);
-  --gradient-hero: linear-gradient(180deg, #FDF6EF 0%, #FAFAF9 100%);
+  --gradient-hero: linear-gradient(180deg, #FBF7F2 0%, #FCFCFB 100%);
   --gradient-hero-dark: linear-gradient(180deg, #78350F 0%, #451A03 100%);
   --gradient-text: linear-gradient(135deg, #92400E 0%, #B45309 50%, #D97757 100%);
-  --gradient-glow: radial-gradient(circle at 30% 20%, rgba(180, 83, 9, 0.12) 0%, transparent 45%),
-                   radial-gradient(circle at 70% 80%, rgba(217, 119, 87, 0.1) 0%, transparent 40%);
+  --gradient-glow: radial-gradient(circle at 30% 20%, rgba(180, 83, 9, 0.1) 0%, transparent 45%),
+                   radial-gradient(circle at 70% 80%, rgba(217, 119, 87, 0.08) 0%, transparent 40%);
 
   /* 纯色背景 */
   --bg-primary: #B45309;
@@ -83,17 +83,17 @@ provide('locale', zhCN)
   --transition-slow: 300ms ease-out;
   --transition-bounce: 400ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* 毛玻璃 */
-  --glass-bg: rgba(250, 250, 249, 0.85);
-  --glass-bg-green: rgba(254, 243, 199, 0.75);
+  /* 毛玻璃（中性底） */
+  --glass-bg: rgba(252, 252, 251, 0.85);
+  --glass-bg-green: rgba(251, 247, 242, 0.8);
   --glass-blur: blur(12px);
   --glass-border: 1px solid rgba(255, 255, 255, 0.7);
 
-  /* Aurora 光晕动效色（暖棕调） */
-  --aurora-1: rgba(180, 83, 9, 0.28);
-  --aurora-2: rgba(249, 115, 22, 0.18);
-  --aurora-3: rgba(217, 119, 87, 0.22);
-  --aurora-4: rgba(234, 179, 8, 0.14);
+  /* Aurora 光晕动效色（暖棕，降低饱和度） */
+  --aurora-1: rgba(180, 83, 9, 0.18);
+  --aurora-2: rgba(249, 115, 22, 0.12);
+  --aurora-3: rgba(217, 119, 87, 0.15);
+  --aurora-4: rgba(234, 179, 8, 0.1);
 }
 
 /* 全局样式优化 */
@@ -180,7 +180,7 @@ a:hover {
 .gradient-border-card {
   position: relative;
   background: linear-gradient(#fff, #fff) padding-box,
-              linear-gradient(135deg, rgba(180, 83, 9, 0.5), rgba(249, 115, 22, 0.25), rgba(217, 119, 87, 0.4)) border-box;
+              linear-gradient(135deg, rgba(180, 83, 9, 0.45), rgba(217, 119, 87, 0.2)) border-box;
   border: 1.5px solid transparent;
   border-radius: var(--radius-xl);
   transition: transform var(--transition-bounce), box-shadow var(--transition-normal);
