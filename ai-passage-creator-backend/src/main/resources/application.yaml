@@ -6,6 +6,9 @@ spring:
     store-type: redis
     # session 30 天过期
     timeout: 2592000
+    redis:
+      # 独立 namespace，避免与其他项目(如 imageloom)共享 Redis 时 session 数据串用
+      namespace: ai-passage:session
   # Redis 配置
   data:
     redis:
