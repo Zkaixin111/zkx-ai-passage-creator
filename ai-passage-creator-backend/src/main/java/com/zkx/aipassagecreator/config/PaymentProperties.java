@@ -21,7 +21,7 @@ public class PaymentProperties {
     private BigDecimal vipPrice = new BigDecimal("29.90");
 
     /** 回调基础地址（公网可访问，如 https://api.example.com/api），用于拼接完整回调 URL */
-    private String notifyBaseUrl = "http://localhost:8123/api";
+    private String notifyBaseUrl = "http://localhost:8081/api";
 
     private Wechat wechat = new Wechat();
 

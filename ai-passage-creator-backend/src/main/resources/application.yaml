@@ -39,7 +39,7 @@ spring:
           # 不指定 model 默认 gpt-4o，这里明确写死
           model: qwen3.7-plus
 server:
-  port: 8123
+  port: 8081
   servlet:
     context-path: /api
     # cookie 30 天过期
@@ -93,7 +93,7 @@ pay:
   # VIP 永久会员价格（元）
   vip-price: 29.90
   # 回调基础地址：必须是公网可访问地址（本地联调可用内网穿透，如 natapp/ngrok）
-  notify-base-url: http://localhost:8123/api
+  notify-base-url: http://localhost:8081/api
   wechat:
     appid: ${PAY_WECHAT_APPID:}
     mchid: ${PAY_WECHAT_MCHID:}

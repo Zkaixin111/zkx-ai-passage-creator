@@ -92,10 +92,10 @@ article:
 ### 3. 启动
 
 ```bash
-# 后端（默认 8123）
+# 后端（默认 8081）
 cd ai-passage-creator-backend && mvn spring-boot:run
 
-# 前端（默认 5173，代理到 8123）
+# 前端（默认 5173，代理到 8081）
 cd ai-passage-creator-frontend && npm install && npm run dev
 ```
 
