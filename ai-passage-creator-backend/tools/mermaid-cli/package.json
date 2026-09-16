@@ -1,0 +1,9 @@
+{
+  "name": "mermaid-cli-tools",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Mermaid 本地渲染工具（由后端 MermaidImageProvider 通过 mmdc 调用）",
+  "dependencies": {
+    "@mermaid-js/mermaid-cli": "^11.16.0"
+  }
+}

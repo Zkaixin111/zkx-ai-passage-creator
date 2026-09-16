@@ -1,0 +1,59 @@
+# ===== 本地敏感配置（含 API Key / 数据库密码 / 支付密钥，不提交） =====
+**/application-local.yaml
+**/application-local.yml
+
+# ===== 个人文件与临时排查产物（不提交） =====
+简历技术亮点.html
+面试速记卡.html
+项目架构分析报告.html
+.trae-html-share-packages/
+agentfw.pom
+dash_auto.pom
+dashscope_pom.xml
+new_openai.xml
+openai_meta.xml
+openai_ms.xml
+
+# ===== WorkBuddy 项目数据（不提交到仓库） =====
+.workbuddy/
+**/.workbuddy/
+
+# ===== IDE =====
+.idea/
+**/.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/*
+!.vscode/extensions.json
+
+# ===== 后端 Java / Spring Boot =====
+**/target/
+**/.mvn/wrapper/maven-wrapper.jar
+**/.apt_generated
+**/.classpath
+**/.factorypath
+**/.project
+**/.settings/
+**/.springBeans
+**/.sts4-cache
+**/*.class
+
+# ===== 前端 Vue / Vite =====
+**/node_modules/
+**/dist/
+**/dist-ssr/
+**/coverage/
+**/.DS_Store
+**/*.local
+**/*.tsbuildinfo
+**/cypress/videos/
+**/cypress/screenshots/
+
+# ===== 日志 =====
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*

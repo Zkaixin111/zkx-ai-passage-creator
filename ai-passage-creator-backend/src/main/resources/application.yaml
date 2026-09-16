@@ -1,0 +1,92 @@
+spring:
+  application:
+    name: ai-passage-creator
+  # 敏感配置（API Key、数据库密码、对象存储密钥、支付密钥、本机工具路径等）
+  # 统一由本地文件 application-local.yaml 注入，该文件不纳入版本控制。
+  # 首次运行请复制同目录下的 application-local.yaml.example 并填写实际值。
+  config:
+    import: optional:classpath:application-local.yaml
+  # session 配置
+  session:
+    store-type: redis
+    # session 30 天过期
+    timeout: 2592000
+    redis:
+      # 独立 namespace，避免与本机其他项目共享 Redis 时 session 数据串用
+      namespace: ai-passage:session
+  # Redis 配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+  # MySQL 数据库配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/ai_passage?Unicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false
+    username: root
+  # Jackson 全局时间格式配置
+  jackson:
+    time-zone: GMT+8
+  ai:
+    openai:
+      # 阿里云 DashScope 的 OpenAI 兼容模式端点
+      # 注意: Spring AI 1.1.0 的 OpenAiApi 内部已自动拼接 "/v1/chat/completions",
+      #       因此 base-url 只能写到 /compatible-mode, 不能带末尾的 /v1, 否则会变成 /v1/v1 导致 404
+      #       (qwen3.7-plus 等模型仅在该兼容模式可用, DashScope 原生接口会报 url error)
+      base-url: https://dashscope.aliyuncs.com/compatible-mode
+      chat:
+        options:
+          # 不指定 model 默认 gpt-4o，这里明确写死
+          model: qwen3.8-flash
+server:
+  port: 8081
+  servlet:
+    context-path: /api
+    # cookie 30 天过期
+    session:
+      cookie:
+        max-age: 2592000
+
+mybatis-flex:
+  configuration:
+    map-underscore-to-camel-case: false
+
+# springdoc-openapi 配置
+springdoc:
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan: com.zkx.aipassagecreator.controller
+# knife4j 接口文档配置
+knife4j:
+  enable: true
+  setting:
+    language: zh_cn
+
+# 文章生成模块配置（敏感信息见 application-local.yaml）
+article:
+  # Pexels 图片搜索
+  pexels:
+    per-page: 1
+  # AI 生图（DashScope 文生图）
+  image:
+    ai:
+      # 文生图模型（实测 wanx2.1-t2i-turbo 可用；wan2.7-r2v-2026-06-12 为图生视频类，
+      # 在 text2image 接口返回 Model not exist / url error，勿用）
+      model: qwen-image-3.0-pro
+      # API key 复用 spring.ai.openai.api-key，无需单独配置
+  # 腾讯云 COS 图片上传
+  cos:
+    region: ap-guangzhou
+    prefix: article
+
+# 支付配置（支付宝）
+pay:
+  # VIP 永久会员价格（元）
+  vip-price: 29.90
+  # 回调基础地址：必须是公网可访问地址（本地联调可用内网穿透，如 natapp/ngrok）
+  notify-base-url: http://localhost:8081/api
+  alipay:
+    # 沙箱网关
+    gateway: https://openapi-sandbox.dl.alipaydev.com/gateway.do
