@@ -17,7 +17,9 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 智能体执行日志服务实现
@@ -95,6 +97,11 @@ public class AgentLogServiceImpl implements AgentLogService {
                     if (logEntity.getIsDelete() == null) {
                         logEntity.setIsDelete(0);
                     }
+                    // JSON 列兜底：截断后的字符串可能不再是合法 JSON，
+                    // 直接写 MySQL JSON 列会触发 Data truncation，进而整批失败并无限重试
+                    logEntity.setPrompt(sanitizeJsonColumn(logEntity.getPrompt()));
+                    logEntity.setInputData(sanitizeJsonColumn(logEntity.getInputData()));
+                    logEntity.setOutputData(sanitizeJsonColumn(logEntity.getOutputData()));
                     batch.add(logEntity);
                     rawJsonList.add(json);
                 } catch (Exception parseEx) {
@@ -119,6 +126,37 @@ public class AgentLogServiceImpl implements AgentLogService {
                 }
             }
             return 0;
+        }
+    }
+
+    /**
+     * 校验一个即将写入 MySQL JSON 列的字符串是否为合法 JSON
+     * <p>
+     * 之所以需要这一步：AgentLogAspect 为了控制日志体积，会把 Prompt / 输入 / 输出
+     * 截断到 2000 字符。截断是从字符串尾部硬切的，切完的字符串几乎必然不再是合法 JSON
+     * （可能断在 key 中间、引号没闭合、数组没结尾）。MySQL JSON 列会拒绝写入，
+     * 抛出 Data truncation，导致整批 insertBatch 失败、再回退队列、下一个 10 秒又失败——无限循环。
+     * <p>
+     * 兜底策略：合法则原样返回；不合法就把它包成一个合法 JSON 对象，
+     * 原文塞进 raw 字段（再截一次保证体积），既保住可读性又不阻塞落库。
+     */
+    private String sanitizeJsonColumn(String value) {
+        if (value == null || value.isBlank()) {
+            return value;
+        }
+        try {
+            OBJECT_MAPPER.readTree(value);
+            return value;
+        } catch (Exception e) {
+            String raw = value.length() > 2000 ? value.substring(0, 2000) : value;
+            Map<String, Object> wrapper = new HashMap<>(2);
+            wrapper.put("truncated", true);
+            wrapper.put("raw", raw);
+            try {
+                return OBJECT_MAPPER.writeValueAsString(wrapper);
+            } catch (Exception writeEx) {
+                return "{\"truncated\":true}";
+            }
         }
     }
 

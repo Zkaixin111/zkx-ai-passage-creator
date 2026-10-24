@@ -28,8 +28,14 @@ import java.util.Map;
 @Component
 public class AgentLogAspect {
 
-    /** 输入/输出数据截断长度，防止超大字段拖垮 Redis/DB */
+    /** 输入/输出数据截断长度，防止超大字段拖垮 Redis/DB（分级截断：Prompt 1000 / IO 2000 / 异常 500） */
     private static final int DATA_MAX_LEN = 2000;
+
+    /** Prompt 字段截断长度 */
+    private static final int PROMPT_MAX_LEN = 1000;
+
+    /** 异常消息截断长度 */
+    private static final int ERROR_MAX_LEN = 500;
 
     @Resource
     private AgentLogService agentLogService;
@@ -51,7 +57,7 @@ public class AgentLogAspect {
             return result;
         } catch (Throwable e) {
             status = "FAILED";
-            errorMessage = StrUtil.maxLength(e.getMessage(), 1000);
+            errorMessage = StrUtil.maxLength(e.getMessage(), ERROR_MAX_LEN);
             throw e;
         } finally {
             try {
@@ -112,7 +118,7 @@ public class AgentLogAspect {
                     for (int i = logs.size() - 1; i >= 0; i--) {
                         com.zkx.aipassagecreator.model.vo.AgentLog l = logs.get(i);
                         if (agentName.equals(l.getAgentName()) && StrUtil.isNotBlank(l.getPrompt())) {
-                            return l.getPrompt();
+                            return StrUtil.maxLength(l.getPrompt(), PROMPT_MAX_LEN);
                         }
                     }
                 }
