@@ -52,6 +52,10 @@ openai_ms.xml
 
 # ===== 日志 =====
 *.log
+# 编译/构建输出日志（如重定向 mvnw 输出产生的 compile_log.txt）
+compile_log.txt
+compile-*.txt
+build-*.txt
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
