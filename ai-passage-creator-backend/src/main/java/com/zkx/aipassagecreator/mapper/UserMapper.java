@@ -26,6 +26,15 @@ public interface UserMapper extends BaseMapper<User> {
     int deductQuota(@Param("userId") Long userId);
 
     /**
+     * 退还一次创作配额（任务创建失败时补偿，避免配额白扣）
+     * <p>
+     * quotaUsed &gt; 0 条件保证不会把已用配额退成负数。
+     */
+    @Update("UPDATE user SET quotaUsed = quotaUsed - 1, updateTime = NOW() " +
+            "WHERE id = #{userId} AND quotaUsed > 0")
+    int refundQuota(@Param("userId") Long userId);
+
+    /**
      * 已消耗配额总量
      */
     @Select("SELECT COALESCE(SUM(quotaUsed), 0) FROM user WHERE isDelete = 0")

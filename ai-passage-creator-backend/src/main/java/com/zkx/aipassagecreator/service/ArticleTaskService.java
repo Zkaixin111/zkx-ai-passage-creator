@@ -48,4 +48,12 @@ public interface ArticleTaskService {
      * 数据源：实时进度优先读内存上下文（ctx），落库字段兜底读 article 表。
      */
     void pushSnapshot(String taskId);
+
+    /**
+     * 校验任务归属（SSE 进度接口调用）
+     * <p>
+     * SSE 会推送标题方案、大纲、正文全文，属于用户私密数据，
+     * 建立连接前必须确认该 taskId 属于当前登录用户。
+     */
+    void checkTaskOwnership(String taskId, Long userId);
 }

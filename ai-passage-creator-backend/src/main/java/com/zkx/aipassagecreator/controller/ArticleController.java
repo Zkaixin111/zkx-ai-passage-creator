@@ -144,10 +144,15 @@ public class ArticleController {
      * 如果设固定超时会导致连接被服务端提前掐断，进度丢失。
      * 连接生命周期由任务上下文的过期清理控制（30 分钟无操作 → 清理 + complete SSE）。
      */
+    @AuthCheck
     @Operation(summary = "获取文章生成进度（SSE 长连接）")
     @GetMapping("/progress/{taskId}")
-    public SseEmitter getProgress(@PathVariable String taskId) {
+    public SseEmitter getProgress(@PathVariable String taskId, HttpServletRequest httpRequest) {
         ThrowUtils.throwIf(taskId == null || taskId.isBlank(), ErrorCode.PARAMS_ERROR);
+        // 越权校验：SSE 会推送标题/大纲/正文全文，必须先确认任务属于当前登录用户，
+        // 校验放在创建 emitter 之前，避免校验失败时把连接遗留在管理器里
+        User loginUser = userService.getLoginUser(httpRequest);
+        articleTaskService.checkTaskOwnership(taskId, loginUser.getId());
         SseEmitter emitter = new SseEmitter(0L);  // 0L = 永不超时
         sseEmitterManager.register(taskId, emitter);  // 注册到管理器，后续通过 taskId 推送消息
         // 连接结束/超时/异常时从管理器移除，避免内存泄漏

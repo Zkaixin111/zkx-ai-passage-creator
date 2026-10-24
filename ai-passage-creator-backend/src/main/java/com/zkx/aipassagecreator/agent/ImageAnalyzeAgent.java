@@ -67,10 +67,18 @@ public class ImageAnalyzeAgent {
                 requirements.add(fallback);
             }
 
-            // 4. 存入 ctx.imageRequirements（智能体5 ImageFetchAgent 会取这个列表并行获取配图）
+            // 4. 数量上限保护：AI 可能返回过多配图需求，
+            // 超过上限会导致并行拉图与 AI 生图费用失控，这里直接截断
+            int maxImages = ArticleConstant.DEFAULT_IMAGE_COUNT;
+            if (requirements.size() > maxImages) {
+                log.info("配图需求 {} 条超过上限 {}，截断处理", requirements.size(), maxImages);
+                requirements = new ArrayList<>(requirements.subList(0, maxImages));
+            }
+
+            // 5. 存入 ctx.imageRequirements（智能体5 ImageFetchAgent 会取这个列表并行获取配图）
             ctx.setImageRequirements(requirements);
 
-            // 5. SSE 推送配图需求（前端展示配图进度）
+            // 6. SSE 推送配图需求（前端展示配图进度）
             Map<String, Object> extra = new HashMap<>();
             extra.put(ArticleConstant.SSE_IMAGE_REQUIREMENTS, requirements);
             sseEmitterManager.send(ctx.getTaskId(), SSEMessageTypeEnum.AGENT4_COMPLETE, extra);

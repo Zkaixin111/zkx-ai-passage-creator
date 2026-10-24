@@ -46,6 +46,9 @@ public class ArticleConstant {
     /** 默认目标字数 */
     public static final int DEFAULT_WORD_COUNT = 1200;
 
+    /** 目标字数上限：防止前端传入超大字数导致 token 成本与生成耗时失控 */
+    public static final int MAX_WORD_COUNT = 5000;
+
     /** 默认配图数量上限 */
     public static final int DEFAULT_IMAGE_COUNT = 5;
 

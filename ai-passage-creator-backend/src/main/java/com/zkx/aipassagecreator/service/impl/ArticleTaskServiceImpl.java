@@ -118,8 +118,13 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         if (user == null) {
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "用户不存在");
         }
-        if (!userService.isVip(user) && userMapper.deductQuota(userId) == 0) {
+        boolean vip = userService.isVip(user);
+        boolean quotaDeducted = false;
+        if (!vip && userMapper.deductQuota(userId) == 0) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "创作配额已用完，升级 VIP 可无限次创作");
+        }
+        if (!vip) {
+            quotaDeducted = true;
         }
 
         // 2. 生成唯一 taskId
@@ -137,7 +142,16 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         article.setCreateTime(now);
         article.setUpdateTime(now);
         article.setIsDelete(0);
-        articleMapper.insert(article);
+        try {
+            articleMapper.insert(article);
+        } catch (RuntimeException e) {
+            // 落库失败：退还刚扣掉的配额，避免用户没拿到任务却白扣一次
+            log.error("创建文章任务落库失败，退还配额: {}", e.getMessage(), e);
+            if (quotaDeducted) {
+                userMapper.refundQuota(userId);
+            }
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "创建任务失败，请重试");
+        }
 
         // 4. 构建 ArticleTaskContext —— 贯穿整个任务生命周期的上下文对象
         // 6 个智能体都通过它共享数据（选题、风格、字数、大纲、正文、配图等）
@@ -146,9 +160,12 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         ctx.setUserId(userId);
         ctx.setTopic(request.getTopic());
         ctx.setStyle(request.getStyle());
-        // 字数处理：前端传了有效值就用，否则用默认值 1200
-        ctx.setWordCount(request.getWordCount() != null && request.getWordCount() > 0
-                ? request.getWordCount() : ArticleConstant.DEFAULT_WORD_COUNT);
+        // 字数处理：前端传了有效值就用，否则用默认值；同时限制上限，
+        // 防止传入超大字数导致 token 成本和生成耗时失控
+        int requestedWordCount = request.getWordCount() == null ? 0 : request.getWordCount();
+        ctx.setWordCount(requestedWordCount > 0
+                ? Math.min(requestedWordCount, ArticleConstant.MAX_WORD_COUNT)
+                : ArticleConstant.DEFAULT_WORD_COUNT);
         ctx.setEnabledImageMethods(request.getEnabledImageMethods());
         ctx.setStartTime(System.currentTimeMillis());
         // 5. 注册到 Registry —— 后续所有智能体通过 taskId 从这里取 ctx
@@ -194,12 +211,6 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         String taskId = request.getTaskId();
         // 从 Registry 取 ctx（内部有权限校验 + 惰性过期检查）
         ArticleTaskContext ctx = getContext(taskId, userId);
-        // CAS 防重：markOutlineStarted() 内部是 AtomicBoolean.compareAndSet(false, true)
-        // 如果用户快速双击确认，第二次 CAS 返回 false，直接拒绝
-        // 防止大纲被重复生成
-        if (!ctx.markOutlineStarted()) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "大纲正在生成中，请勿重复操作");
-        }
 
         // 把用户选的标题存入 ctx（后续大纲/正文智能体会用到）
         ctx.setSelectedMainTitle(request.getSelectedMainTitle());
@@ -213,6 +224,13 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         article.setUserDescription(request.getUserDescription());
         article.setPhase(ArticlePhaseEnum.OUTLINE_GENERATING.getValue());
         articleMapper.update(article);
+
+        // CAS 防重放在所有落库操作之后、异步提交之前：
+        // 若前面的校验/落库抛异常，标记不会被提前置位，用户可以重新确认；
+        // 否则任务会永久卡在「大纲正在生成中，请勿重复操作」
+        if (!ctx.markOutlineStarted()) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "大纲正在生成中，请勿重复操作");
+        }
 
         // 异步执行智能体2（OutlineAgent 流式生成大纲 JSON，通过 SSE 逐字推送）
         taskExecutor.execute(() -> {
@@ -249,11 +267,6 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         String taskId = request.getTaskId();
         ArticleTaskContext ctx = getContext(taskId, userId);
 
-        // CAS 防重：防止重复点击"确认大纲"导致正文链路被重复执行
-        if (!ctx.markContentStarted()) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "正文正在生成中，请勿重复操作");
-        }
-
         // 把前端传来的大纲（用户可能编辑过）转换为内部 OutlineItem 格式，存入 ctx
         List<OutlineItem> outline = request.getOutline().stream().map(section -> {
             OutlineItem item = new OutlineItem();
@@ -269,6 +282,11 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         article.setOutline(toJson(outline));
         article.setPhase(ArticlePhaseEnum.CONTENT_GENERATING.getValue());
         articleMapper.update(article);
+
+        // CAS 防重放在落库之后：避免落库异常时标记已置位，导致正文链路永久无法启动
+        if (!ctx.markContentStarted()) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "正文正在生成中，请勿重复操作");
+        }
 
         // 异步执行智能体3（ContentAgent 流式写正文，通过 SSE 逐字推送）
         // 正文写完后暂停，等用户确认配图方案（不 remove registry，由 confirmContent 清理）
@@ -315,11 +333,6 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "AI 智能生图与 SVG 图表仅限 VIP 会员使用");
         }
 
-        // CAS 防重：防止重复确认配图导致配图链路被重复执行
-        if (!ctx.markImageTaskStarted()) {
-            throw new BusinessException(ErrorCode.OPERATION_ERROR, "正在处理中，请勿重复操作");
-        }
-
         boolean generateImages = Boolean.TRUE.equals(request.getGenerateImages());
         // 记录用户选择的配图方式（不生成图片时传空数组）
         ctx.setEnabledImageMethods(generateImages ? request.getEnabledImageMethods() : List.of());
@@ -329,6 +342,11 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
             article.setPhase(ArticlePhaseEnum.IMAGE_GENERATING.getValue());
             article.setUpdateTime(LocalDateTime.now());
             articleMapper.update(article);
+        }
+
+        // CAS 防重放在落库之后：避免落库异常时标记已置位，导致配图链路永久无法启动
+        if (!ctx.markImageTaskStarted()) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "正在处理中，请勿重复操作");
         }
 
         // 异步执行智能体4-6
@@ -488,6 +506,17 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         }
         ctx.touch();  // 刷新活跃时间，重置 30 分钟倒计时
         return ctx;
+    }
+
+    /**
+     * 校验任务归属，防止通过 taskId 越权读取他人创作内容
+     */
+    @Override
+    public void checkTaskOwnership(String taskId, Long userId) {
+        Article article = getArticleByTaskId(taskId);
+        if (!article.getUserId().equals(userId)) {
+            throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "无权限查看该任务");
+        }
     }
 
     /**
