@@ -161,8 +161,10 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
             try {
                 // 调用 StateGraph 执行标题生成子图
                 articleAgentGraph.invokeTitle(ctx);
-                // 如果智能体内部设置了 cancelled（如 API 调用失败），直接返回
+                // 智能体内部失败时会 setCancelled 且不抛异常，这里必须落库为 FAILED，
+                // 否则数据库永远停在「标题生成中」，历史页与看门狗都无法结束该任务
                 if (ctx.isCancelled()) {
+                    markFailed(taskId, "标题生成失败");
                     return;
                 }
                 // 智能体1执行完后，把标题方案落库，阶段流转为 TITLE_SELECTING（等用户选标题）
@@ -216,7 +218,9 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         taskExecutor.execute(() -> {
             try {
                 articleAgentGraph.invokeOutline(ctx);
+                // 智能体内部失败（cancelled）不会抛异常，必须显式标记失败，避免状态卡死
                 if (ctx.isCancelled()) {
+                    markFailed(taskId, "大纲生成失败");
                     return;
                 }
                 // 大纲生成完后落库，阶段流转为大纲编辑中（等用户编辑/确认大纲）
@@ -271,7 +275,9 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         taskExecutor.execute(() -> {
             try {
                 articleAgentGraph.invokeContent(ctx);
+                // 智能体内部失败（cancelled）不会抛异常，必须显式标记失败，避免状态卡死
                 if (ctx.isCancelled()) {
+                    markFailed(taskId, "正文生成失败");
                     return;
                 }
                 // 持久化正文，阶段流转为正文确认中（等用户确认配图方案）
@@ -340,13 +346,18 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
                 log.info("[{}] 配图/合成链路返回，耗时 {}ms，cancelled={}", taskId,
                         System.currentTimeMillis() - mergeStart, ctx.isCancelled());
                 if (ctx.isCancelled()) {
-                    log.warn("[{}] 链路被取消（智能体内部失败），任务提前结束且不再推送", taskId);
+                    log.warn("[{}] 链路被取消（智能体内部失败），标记任务失败", taskId);
+                    markFailed(taskId, "内容生成失败");
                     return;
                 }
                 // 全链路完成，持久化最终结果（正文+图文+封面图）
                 log.info("[{}] 开始持久化完成态 persistCompleted", taskId);
                 persistCompleted(article, ctx);
                 log.info("[{}] persistCompleted 完成", taskId);
+                // 落库成功后才推送 ALL_COMPLETE：否则前端会先收到"完成"，
+                // 但此时数据库仍是 PROCESSING，刷新/查看详情会看到未完成的文章
+                sseEmitterManager.send(taskId, SSEMessageTypeEnum.ALL_COMPLETE, null);
+                sseEmitterManager.complete(taskId);
             } catch (Exception e) {
                 log.error("配图/合成链路执行异常: {}", e.getMessage(), e);
                 markFailed(taskId, "内容生成失败");
@@ -471,6 +482,8 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
             log.info("[{}] 任务因长时间未操作而过期", taskId);
             articleTaskRegistry.remove(taskId);
             sseEmitterManager.complete(taskId);  // 关闭 SSE 连接
+            // 内存已清理，数据库也必须收尾，否则历史页会永远停留在"生成中"
+            markFailed(taskId, "任务已超时，请重新创建");
             throw new BusinessException(ErrorCode.NOT_FOUND_ERROR, "任务已过期，请重新创建");
         }
         ctx.touch();  // 刷新活跃时间，重置 30 分钟倒计时
@@ -498,6 +511,19 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
                 return;
             }
             ArticleTaskContext ctx = articleTaskRegistry.get(taskId);
+            // 僵尸任务检测：数据库显示"处理中/待处理"，但内存上下文已不存在
+            // （服务重启、超时清理、或账号换了设备），此时前端若按旧 phase 恢复，
+            // 后续任何确认操作都会报"任务已过期"。这里直接把库状态收尾为 FAILED，
+            // 让用户看到明确的失败提示并重新创建，而不是卡在一个死界面里。
+            if (ctx == null && isProcessingStatus(article.getStatus())) {
+                log.info("[{}] 快照发现僵尸任务（无内存上下文），标记为失败", taskId);
+                markFailed(taskId, "任务已过期，请重新创建");
+                try {
+                    article = getArticleByTaskId(taskId);  // 重新读取最新的 FAILED 状态
+                } catch (Exception ignored) {
+                    return;
+                }
+            }
             Map<String, Object> snap = new HashMap<>();
             snap.put("phase", article.getPhase());
             snap.put("status", article.getStatus());
@@ -576,6 +602,9 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
                 log.info("[{}] 定时清理过期任务上下文", taskId);
                 articleTaskRegistry.remove(taskId);
                 sseEmitterManager.complete(taskId);
+                // 同步收尾数据库状态，否则用户关浏览器后任务会永久显示"生成中"，
+                // 历史页还会出现可点「继续创作」的僵尸条目
+                markFailed(taskId, "任务已超时，请重新创建");
             }
         });
     }
@@ -623,7 +652,15 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
     }
 
     /**
-     * 标记任务失败并推送错误信息
+     * 判断文章状态是否仍处于未完成（待处理 / 处理中）
+     */
+    private boolean isProcessingStatus(String status) {
+        return ArticleStatusEnum.PENDING.getValue().equals(status)
+                || ArticleStatusEnum.PROCESSING.getValue().equals(status);
+    }
+
+    /**
+     * 标记任务失败
      * 把数据库中的 Article 状态改为 FAILED，阶段改为 FAILED。
      */
     private void markFailed(String taskId, String message) {

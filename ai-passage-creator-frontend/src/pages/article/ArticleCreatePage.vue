@@ -769,6 +769,7 @@ const applySnapshot = (snap: any) => {
       startWatchdog()
       break
     case 'COMPLETED':
+      stopWatchdog()
       currentPhase.value = 'COMPLETED'
       currentStep.value = 6
       isCompleted.value = true
@@ -776,6 +777,12 @@ const applySnapshot = (snap: any) => {
       sessionStorage.removeItem(ACTIVE_TASK_KEY)
       break
     case 'FAILED':
+      // 失败/过期：停止一切进行中的状态，提示后回到输入界面，用户可重新创作
+      stopWatchdog()
+      isCreating.value = false
+      isStreaming.value = false
+      isOutlineStreaming.value = false
+      currentPhase.value = 'INPUT'
       errorMessage.value = snap.errorMessage || '创作失败'
       errorVisible.value = true
       sessionStorage.removeItem(ACTIVE_TASK_KEY)
@@ -876,6 +883,7 @@ const startCreate = async () => {
     eventSource = connectSSE(taskId.value, {
       onMessage: handleSSEMessage,
       onError: handleSSEError,
+      onReconnecting: handleSSEReconnecting,
       onComplete: handleSSEComplete,
     })
     startWatchdog()
@@ -1184,16 +1192,27 @@ const handleConfirmContent = async (data: {generateImages: boolean, enabledImage
   }
 }
 
-// 处理 SSE 错误
+// SSE 断线等待自动重连（不冻结界面，重连成功后由 SNAPSHOT 恢复现场）
+const handleSSEReconnecting = (attempt: number) => {
+  if (attempt === 1) {
+    addLog('实时连接中断，正在自动重连…', 'info')
+  }
+}
+
+// 处理 SSE 最终断链（自动重连次数耗尽后才触发）
 const handleSSEError = (error: Event) => {
-  console.error('SSE错误:', error)
+  console.error('SSE 重连失败:', error)
   // 任务已完成时忽略断开事件
   if (currentPhase.value === 'COMPLETED') {
     return
   }
-  // 服务端关闭连接（任务过期清理）或网络异常
-  message.warning('实时连接已断开，刷新页面可自动恢复创作进度')
-  isCreating.value = false
+  // 不冻结界面：SSE 不可用时切换为轮询服务端状态，
+  // 已完结会自动补齐结果，仍在进行则继续等待（避免用户必须手动刷新）
+  addLog('实时连接已断开，切换为状态轮询同步进度', 'info')
+  message.warning('实时连接已断开，已切换为状态轮询')
+  if (taskId.value) {
+    startWatchdog()
+  }
 }
 
 // 处理 SSE 完成
@@ -1317,6 +1336,7 @@ onMounted(() => {
     eventSource = connectSSE(taskId.value, {
       onMessage: handleSSEMessage,
       onError: handleSSEError,
+      onReconnecting: handleSSEReconnecting,
       onComplete: handleSSEComplete,
     })
   }

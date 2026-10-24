@@ -82,8 +82,9 @@ public class ImageFetchAgent {
                 for (int i = 0; i < n; i++) {
                     ImageItem req = requirements.get(i);
                     int index = i;
+                    // 每张图都包一层异常兜底：单张图失败绝不能拖垮整批配图
                     futures.add(CompletableFuture.supplyAsync(
-                            () -> fetchOne(req, providers, ctx.getTaskId(), index), imageFetchExecutor));
+                            () -> fetchOneSafely(req, providers, ctx.getTaskId(), index), imageFetchExecutor));
                 }
                 // 主线程按顺序 join 收集结果（此时各图已并行完成或即将完成）
                 // 每完成一张推送 SSE IMAGE_COMPLETE，前端进度条更新
@@ -159,7 +160,12 @@ public class ImageFetchAgent {
         if (result != null) {
             if (result.getData() != null) {
                 // 自生成内容（Mermaid SVG / AI 生图）：拿到的是 byte[]，必须上传 COS 才有 URL
-                finalUrl = cosService.upload(result.getData(), taskId, "image_" + (index + 1) + "." + ext);
+                try {
+                    finalUrl = cosService.upload(result.getData(), taskId, "image_" + (index + 1) + "." + ext);
+                } catch (Exception e) {
+                    // COS 不可用不能让整张图失败，交给下面的 Picsum 兜底
+                    log.warn("配图 {} 上传 COS 失败: {}", index + 1, e.getMessage());
+                }
             } else if (StrUtil.isNotBlank(result.getUrl())) {
                 // 远程图（Pexels）：尝试下载后上传 COS（统一 CDN），失败则保留源 URL
                 finalUrl = uploadRemoteOrKeep(result.getUrl(), taskId, index, ext);
@@ -170,15 +176,35 @@ public class ImageFetchAgent {
             finalUrl = picsumUrl(keywords);
             method = "PICSUM";
         }
+        return buildImage(req, keywords, index, method, finalUrl);
+    }
 
-        // 构造最终 ImageItem 返回
+    /**
+     * 带异常兜底的获取单张配图
+     * <p>
+     * fetchOne 内部虽已做三级降级，但仍有未预期的运行时异常（如第三方 SDK 抛错）。
+     * 这里统一兜住并返回 Picsum 直链，保证 CompletableFuture.join() 永远不抛异常，
+     * 单张图的失败不会导致整批配图链路失败、任务被标记取消。
+     */
+    private ImageItem fetchOneSafely(ImageItem req, List<ImageProvider> providers, String taskId, int index) {
+        try {
+            return fetchOne(req, providers, taskId, index);
+        } catch (Exception e) {
+            log.warn("配图 {} 获取异常，降级为 Picsum 兜底: {}", index + 1, e.getMessage());
+            String keywords = req == null || req.getKeywords() == null ? "technology" : req.getKeywords();
+            return buildImage(req, keywords, index, "PICSUM", picsumUrl(keywords));
+        }
+    }
+
+    /** 构造最终返回的 ImageItem */
+    private ImageItem buildImage(ImageItem req, String keywords, int index, String method, String url) {
         ImageItem img = new ImageItem();
-        img.setPosition(req.getPosition() == null ? index + 1 : req.getPosition());
+        img.setPosition(req == null || req.getPosition() == null ? index + 1 : req.getPosition());
         img.setKeywords(keywords);
-        img.setSectionTitle(req.getSectionTitle());
-        img.setDescription(req.getDescription());
+        img.setSectionTitle(req == null ? null : req.getSectionTitle());
+        img.setDescription(req == null ? null : req.getDescription());
         img.setMethod(method);
-        img.setUrl(finalUrl);
+        img.setUrl(url);
         return img;
     }
 

@@ -151,9 +151,10 @@ public class ArticleController {
         SseEmitter emitter = new SseEmitter(0L);  // 0L = 永不超时
         sseEmitterManager.register(taskId, emitter);  // 注册到管理器，后续通过 taskId 推送消息
         // 连接结束/超时/异常时从管理器移除，避免内存泄漏
-        emitter.onCompletion(() -> sseEmitterManager.remove(taskId));
-        emitter.onTimeout(() -> sseEmitterManager.remove(taskId));
-        emitter.onError(e -> sseEmitterManager.remove(taskId));
+        // 按实例移除：多标签页等场景下，旧连接的回调不能误删新注册的连接
+        emitter.onCompletion(() -> sseEmitterManager.remove(taskId, emitter));
+        emitter.onTimeout(() -> sseEmitterManager.remove(taskId, emitter));
+        emitter.onError(e -> sseEmitterManager.remove(taskId, emitter));
         // 建立后立即补发任务快照：切页/刷新/断线重连场景下前端据此恢复到当前阶段
         articleTaskService.pushSnapshot(taskId);
         return emitter;

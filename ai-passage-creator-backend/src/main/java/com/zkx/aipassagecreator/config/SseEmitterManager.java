@@ -38,9 +38,18 @@ public class SseEmitterManager {
 
     /**
      * 注册 SSE 连接（前端 GET /article/progress/{taskId} 时调用）
+     * <p>
+     * 同一 taskId 允许多个标签页同时监听：旧连接会被主动 complete 释放，避免泄漏；
+     * 之后的消息统一下发到最新连接（前端重连场景天然覆盖旧连接）。
      */
     public void register(String taskId, SseEmitter emitter) {
-        emitterMap.put(taskId, emitter);
+        SseEmitter old = emitterMap.put(taskId, emitter);
+        if (old != null && old != emitter) {
+            try {
+                old.complete();  // 释放旧连接，否则旧 SseEmitter 永不超时会一直占着资源
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     /**
@@ -58,6 +67,17 @@ public class SseEmitterManager {
     }
 
     /**
+     * 仅当映射里登记的仍是该 emitter 时才移除
+     * <p>
+     * 多标签页场景：A 标签关闭会触发 A 的 onCompletion，
+     * 若按 taskId 直接删除，会把 B 标签刚注册的新连接一并删掉，
+     * 导致 B 静默收不到任何消息。
+     */
+    public void remove(String taskId, SseEmitter emitter) {
+        emitterMap.remove(taskId, emitter);
+    }
+
+    /**
      * 发送 SSE 消息 —— 所有智能体推送进度都走这个方法
      * <p>
      * 组装 JSON：{"type":"消息类型", ...extra}，通过 SseEmitter.send 推送给前端。
@@ -70,7 +90,9 @@ public class SseEmitterManager {
     public void send(String taskId, SSEMessageTypeEnum type, Map<String, Object> extra) {
         SseEmitter emitter = emitterMap.get(taskId);
         if (emitter == null) {
-            return;  // 前端还没建立连接或已断开，静默忽略
+            // 前端还没建立连接或已断开：这类丢失会直接表现为"界面卡死"，必须留痕
+            log.warn("[SSE] 推送失败：无可用连接 taskId={} type={}", taskId, type.getValue());
+            return;
         }
         // 组装消息体：type + extra 合并为一个 JSON
         Map<String, Object> payload = new LinkedHashMap<>();
@@ -84,7 +106,8 @@ public class SseEmitterManager {
         } catch (Exception e) {
             // 连接已断开（用户关浏览器等），移除并忽略
             // 不抛异常，避免影响正在执行的智能体线程
-            emitterMap.remove(taskId);
+            // 按实例移除：期间前端可能已重连并注册了新 emitter，不能误删
+            emitterMap.remove(taskId, emitter);
         }
     }
 
