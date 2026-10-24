@@ -83,6 +83,22 @@ public class ArticleTaskContext {
     /** 正文内容（智能体3 ContentAgent 流式逐字追加到这里，用 StringBuilder 是因为频繁 append） */
     private StringBuilder content = new StringBuilder();
 
+    /** 大纲流式原始文本（OutlineAgent 逐 chunk 累积，用于 SSE 重连时补发已流出的部分） */
+    private StringBuilder outlineRaw = new StringBuilder();
+
+    /** 正文各段落内容（ContentAgent 分段生成，段开始时 add 一个空 StringBuilder，段内流式追加。
+     *  用 synchronizedList 是因为智能体线程写入、SSE 重连线程读取存在并发） */
+    private List<StringBuilder> sectionContents = java.util.Collections.synchronizedList(new ArrayList<>());
+
+    /** 当前正在生成的段落序号（从 0 开始，-1 表示未开始） */
+    private volatile int currentSectionIndex = -1;
+
+    /** 已完成段落数 */
+    private volatile int completedSections = 0;
+
+    /** 段落总数（等于大纲章节数，ContentAgent 启动时写入） */
+    private volatile int totalSections = 0;
+
     /** 配图需求（智能体4 ImageAnalyzeAgent 产出，分析每段需要什么类型的图） */
     private List<ImageItem> imageRequirements = new ArrayList<>();
 

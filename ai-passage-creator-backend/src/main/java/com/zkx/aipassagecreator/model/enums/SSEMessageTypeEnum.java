@@ -21,10 +21,16 @@ public enum SSEMessageTypeEnum {
     OUTLINE_GENERATED("OUTLINE_GENERATED", "大纲生成完成"),
     /** 智能体2（大纲）内部完成 */
     AGENT2_COMPLETE("AGENT2_COMPLETE", "大纲完成"),
-    /** 正文流式输出（携带 content） */
+    /** 正文流式输出（携带 content + sectionIndex） */
     AGENT3_STREAMING("AGENT3_STREAMING", "正文流式输出"),
+    /** 正文某段落开始生成（携带 sectionIndex/totalSections/sectionTitle） */
+    CONTENT_SECTION_START("CONTENT_SECTION_START", "正文段落开始"),
+    /** 正文某段落生成完成（携带 sectionIndex/totalSections） */
+    CONTENT_SECTION_COMPLETE("CONTENT_SECTION_COMPLETE", "正文段落完成"),
     /** 智能体3（正文）完成 */
     AGENT3_COMPLETE("AGENT3_COMPLETE", "正文完成"),
+    /** 任务快照（SSE 建立时补发，用于前端断点恢复） */
+    SNAPSHOT("SNAPSHOT", "任务快照"),
     /** 智能体4（配图分析）完成（携带 imageRequirements） */
     AGENT4_COMPLETE("AGENT4_COMPLETE", "配图分析完成"),
     /** 单张配图完成 */

@@ -59,6 +59,7 @@ public class OutlineAgent {
             chatClientBuilder.build().prompt().user(prompt).stream().content()
                     .doOnNext(chunk -> {
                         raw.append(chunk);  // 累积完整文本，后续解析用
+                        ctx.getOutlineRaw().append(chunk);  // 同步累积到上下文，SSE 重连时补发已流式部分
                         Map<String, Object> extra = new HashMap<>();
                         extra.put(ArticleConstant.SSE_CONTENT, chunk);  // 前端用这个字段做打字动画
                         sseEmitterManager.send(ctx.getTaskId(), SSEMessageTypeEnum.AGENT2_STREAMING, extra);

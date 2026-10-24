@@ -74,4 +74,13 @@ public class ArticleConstant {
 
     /** 错误信息 */
     public static final String SSE_MESSAGE = "message";
+
+    /** 当前段落序号（从 0 开始） */
+    public static final String SSE_SECTION_INDEX = "sectionIndex";
+
+    /** 段落总数 */
+    public static final String SSE_TOTAL_SECTIONS = "totalSections";
+
+    /** 当前段落标题 */
+    public static final String SSE_SECTION_TITLE = "sectionTitle";
 }

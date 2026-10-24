@@ -109,6 +109,16 @@
                   重试
                 </a-button>
                 <a-button
+                  v-else-if="record.status === 'PROCESSING' || record.status === 'PENDING'"
+                  type="link"
+                  size="small"
+                  @click="resumeArticle(record)"
+                  class="action-btn resume-btn"
+                >
+                  <PlayCircleOutlined />
+                  继续创作
+                </a-button>
+                <a-button
                   v-else
                   type="link"
                   size="small"
@@ -162,7 +172,8 @@ import {
   DownloadOutlined,
   DeleteOutlined,
   FileTextOutlined,
-  RedoOutlined
+  RedoOutlined,
+  PlayCircleOutlined
 } from '@ant-design/icons-vue'
 import { listArticle, deleteArticle as deleteArticleApi, getArticle } from '@/api/articleController'
 import dayjs, { type Dayjs } from 'dayjs'
@@ -342,6 +353,14 @@ const deleteArticle = async (record: API.ArticleVO) => {
   } catch (error) {
     message.error((error as Error).message || '删除失败')
   }
+}
+
+// 继续创作（恢复未完成的生成任务）
+const resumeArticle = (record: API.ArticleVO) => {
+  router.push({
+    path: '/create',
+    query: { taskId: record.taskId || '' }
+  })
 }
 
 // 重试文章（重新创建）
@@ -548,7 +567,7 @@ onMounted(() => {
     }
 
     :deep(.ant-table-tbody > tr:hover > td) {
-      background: rgba(180, 83, 9, 0.02);
+      background: rgba(31, 111, 84, 0.02);
     }
 
     :deep(.ant-table-pagination) {
@@ -601,7 +620,7 @@ onMounted(() => {
     }
 
     &.status-completed {
-      background: rgba(180, 83, 9, 0.1);
+      background: rgba(31, 111, 84, 0.1);
       color: var(--color-primary-dark);
 
       .status-dot {
@@ -671,6 +690,14 @@ onMounted(() => {
 
       &:hover {
         color: #DC2626;
+      }
+    }
+
+    &.resume-btn {
+      color: #2563EB;
+
+      &:hover {
+        color: #1D4ED8;
       }
     }
 

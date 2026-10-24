@@ -1,59 +1,41 @@
 <template>
   <div class="article-create-page">
-    <!-- 三栏布局容器 -->
+    <!-- 四笔进度条：真实阶段映射进四笔叙事（映射见 constants/fourBrushes.ts） -->
+    <div class="stepper">
+      <div
+        v-for="(brush, index) in FOUR_BRUSHES"
+        :key="brush.en"
+        :class="['step-node', brushStates[index]]"
+      >
+        <div class="ball">{{ brushStates[index] === 'done' ? '✓' : brush.char }}</div>
+        <div class="step-name">{{ brush.name }}</div>
+        <div class="step-en">{{ brush.en }}</div>
+      </div>
+    </div>
+
+    <!-- 主区：左舞台 + 右日志 -->
     <div class="create-layout">
-      <!-- 左侧：智能体流程可视化 -->
-      <aside class="sidebar-left">
-        <div class="sidebar-header">
-          <h3 class="sidebar-title">创作流程</h3>
-          <p class="sidebar-subtitle">智能体协作可视化</p>
+      <!-- 左：阶段舞台 -->
+      <main ref="mainContentRef" class="stage">
+        <!-- 任务全部完成时的「成」印章覆盖层（纯展示，不影响数据） -->
+        <div v-if="currentPhase === 'COMPLETED'" class="done-stamp">
+          <div class="seal-big">成</div>
+          <small>成 稿 已 就 · 可 去 署 名</small>
         </div>
 
-        <div class="flow-timeline">
-          <div
-            v-for="(step, index) in agentSteps"
-            :key="index"
-            :class="['flow-item', {
-              'active': currentStep === index,
-              'completed': currentStep > index,
-              'pending': currentStep < index
-            }]"
-          >
-            <div class="flow-indicator">
-              <LoadingOutlined v-if="currentStep === index && isCreating" class="spin-icon" />
-              <CheckCircleOutlined v-else-if="currentStep > index" />
-              <span v-else class="step-number">{{ index + 1 }}</span>
-            </div>
-            <div class="flow-content">
-              <div class="flow-title">{{ step.title }}</div>
-              <div class="flow-desc">{{ step.description }}</div>
-              <div v-if="currentStep === index && isCreating" class="flow-status">
-                <span class="status-dot"></span>
-                执行中...
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </aside>
-
-      <!-- 中间：主内容区 -->
-      <main ref="mainContentRef" class="main-content">
         <!-- 阶段切换（带过渡动画） -->
         <Transition name="fade-slide" mode="out-in">
-          <!-- 输入状态 -->
+          <!-- 输入状态：第一笔 · 研墨 -->
           <div v-if="currentPhase === 'INPUT'" key="input" class="input-state">
-          <div class="input-card">
-            <div class="input-header">
-              <h1 class="input-title">创作新文章</h1>
-              <p class="input-subtitle">输入选题，AI 帮你生成爆款文章</p>
-            </div>
+          <div class="stage-kicker">第 一 笔 · 研 墨</div>
+          <h2 class="stage-title">研墨 · 你要写什么？</h2>
+          <p class="stage-hint">一句话说清选题即可。神笔会先给出几组标题，你点头才往下走。</p>
 
             <div class="input-area">
               <a-textarea
                 v-model:value="topic"
                 placeholder="请输入您想创作的文章选题，例如：2026年AI如何改变职场"
-                :rows="6"
+                :rows="5"
                 :maxlength="500"
                 show-count
                 class="topic-textarea"
@@ -119,7 +101,7 @@
                 <template #icon>
                   <RocketOutlined />
                 </template>
-                开始创作
+                落笔开始 →
               </a-button>
               <div v-if="!hasQuota" class="quota-warning">
                 <WarningOutlined />
@@ -127,12 +109,11 @@
               </div>
             </div>
           </div>
-          </div>
 
           <!-- 标题生成中 -->
           <div v-else-if="currentPhase === 'TITLE_GENERATING'" key="title-generating" class="loading-stage">
             <a-spin size="large" />
-            <h3>AI 正在生成标题方案...</h3>
+            <h3>研墨正浓 · AI 正在生成标题方案...</h3>
             <p>稍等片刻，即将为您呈现多个精彩标题</p>
           </div>
 
@@ -147,6 +128,9 @@
 
           <!-- 大纲生成中（流式展示） -->
           <div v-else-if="currentPhase === 'OUTLINE_GENERATING'" key="outline-generating" class="outline-generating-state">
+            <div class="stage-kicker">第 二 笔 · 起 稿</div>
+            <h2 class="stage-title">起稿 · 大纲流式展开</h2>
+
             <!-- 标题预览 -->
             <div v-if="article.mainTitle" class="preview-header">
               <h1 class="article-title">{{ article.mainTitle }}</h1>
@@ -191,6 +175,8 @@
 
           <!-- 正文完成，配图确认阶段 -->
           <div v-else-if="currentPhase === 'CONTENT_CONFIRMING'" key="content-confirming" class="creating-state">
+            <div class="stage-kicker">第 三 笔 · 落 笔</div>
+            <h2 class="stage-title">落笔 · 正文已成，等你看一眼</h2>
             <div v-if="article.mainTitle" class="preview-header">
               <h1 class="article-title">{{ article.mainTitle }}</h1>
               <p class="article-subtitle">{{ article.subTitle }}</p>
@@ -203,6 +189,9 @@
 
           <!-- 正文生成阶段 -->
           <div v-else-if="currentPhase === 'CONTENT_GENERATING'" key="content-generating" class="creating-state">
+          <div class="stage-kicker">第 三 笔 · 落 笔</div>
+          <h2 class="stage-title">落笔 · 逐段成文</h2>
+
           <!-- 标题预览 -->
           <div v-if="article.mainTitle" class="preview-header">
             <h1 class="article-title">{{ article.mainTitle }}</h1>
@@ -230,8 +219,42 @@
             </div>
           </div>
 
-          <!-- 正文预览（流式输出） -->
-          <div v-if="article.content" class="content-preview">
+          <!-- 段落级进度（分段生成模式下展示） -->
+          <div v-if="totalSections > 0" class="section-progress-box">
+            <div class="progress-header">
+              <BulbOutlined />
+              <span>正文撰写进度</span>
+              <span class="section-count">{{ completedSections }}/{{ totalSections }} 段</span>
+            </div>
+            <a-progress
+              :percent="totalSections > 0 ? Math.round((completedSections / totalSections) * 100) : 0"
+              status="active"
+              :stroke-color="{ from: '#C08A3E', to: '#C4402F' }"
+            />
+          </div>
+
+          <!-- 分段展示：已完成段渲染 Markdown / 当前段打字机 / 待生成段灰色占位 -->
+          <div v-if="totalSections > 0 && parsedOutline.length > 0" class="content-preview section-list">
+            <div
+              v-for="(item, idx) in parsedOutline"
+              :key="item.section ?? idx"
+              :class="['section-block', sectionState(idx)]"
+            >
+              <template v-if="idx < completedSections">
+                <div v-html="markdownToHtml(sectionContents[idx] || '')" class="markdown-body"></div>
+              </template>
+              <template v-else-if="idx === currentSectionIndex">
+                <div class="content-streaming-text">{{ sectionContents[idx] || '' }}<span class="typing-cursor">|</span></div>
+              </template>
+              <template v-else>
+                <div class="section-pending-title">{{ item.section }}. {{ item.title }}</div>
+                <div class="section-pending-hint">待生成</div>
+              </template>
+            </div>
+          </div>
+
+          <!-- 正文预览（无段落信息时的整篇流式兜底） -->
+          <div v-else-if="article.content" class="content-preview">
             <!-- 流式阶段：纯文本 + 打字光标（零延迟） -->
             <div v-if="isStreaming" class="content-streaming-text">{{ article.content }}<span class="typing-cursor">|</span></div>
             <!-- 流式结束后：完整 Markdown 渲染 -->
@@ -242,9 +265,9 @@
           <div v-if="currentStep === 4 && imageProgress > 0" class="image-progress-box">
             <div class="progress-header">
               <PictureOutlined />
-              <span>正在生成配图</span>
+              <span>第四笔 · 正在点睛（生成配图）</span>
             </div>
-            <a-progress :percent="imageProgress" status="active" :stroke-color="{ from: '#B45309', to: '#92400E' }" />
+            <a-progress :percent="imageProgress" status="active" :stroke-color="{ from: '#C08A3E', to: '#C4402F' }" />
             <p class="progress-hint">{{ imageCount }}/{{ totalImages }} 张图片已完成</p>
           </div>
 
@@ -257,6 +280,9 @@
 
           <!-- 创作完成 -->
           <div v-else-if="currentPhase === 'COMPLETED'" key="completed" class="completed-state">
+          <div class="stage-kicker">第 四 笔 · 点 睛</div>
+          <h2 class="stage-title">点睛 · 四笔已齐</h2>
+
           <div class="success-header">
             <CheckCircleFilled class="success-icon" />
             <span>文章创作完成！</span>
@@ -290,14 +316,73 @@
               </a-button>
             </div>
           </div>
+
+          <!-- 成稿一览：完成态填充左侧版面（数据全部来自真实结果） -->
+          <div class="completion-summary">
+            <h4 class="summary-title">
+              <BarChartOutlined />
+              成稿一览
+            </h4>
+            <div class="summary-grid">
+              <div class="summary-card">
+                <div class="summary-value">{{ (article.fullContent || article.content || '').length }}</div>
+                <div class="summary-label">字数</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-value">{{ article.images?.length || 0 }}</div>
+                <div class="summary-label">配图</div>
+              </div>
+              <div class="summary-card">
+                <div class="summary-value">{{ Math.max(1, Math.ceil((article.fullContent || article.content || '').length / 400)) }}</div>
+                <div class="summary-label">分钟阅读</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 快捷操作：从右侧迁入，跟随成稿一览 -->
+          <div class="completion-actions">
+            <a-button size="large" @click="copyContent" class="completion-btn">
+              <CopyOutlined />
+              复制全文
+            </a-button>
+            <a-button size="large" @click="viewArticle" class="completion-btn">
+              <EyeOutlined />
+              查看详情
+            </a-button>
+            <a-button size="large" type="primary" @click="resetCreate" class="completion-btn primary">
+              <RedoOutlined />
+              再创作一篇
+            </a-button>
+          </div>
           </div>
         </Transition>
       </main>
 
-      <!-- 右侧：辅助面板 -->
+      <!-- 右：辅助面板（生成期间 = SSE 现场直播；其余时候 = 配额/热门选题，两者互斥不遮挡） -->
       <aside class="sidebar-right">
-        <!-- 配额信息 -->
-        <div v-if="currentPhase === 'INPUT'" class="panel-section quota-section">
+        <!-- 实时执行日志：仅在开始生成（或已有日志）时出现（数据全部来自真实 SSE 流） -->
+        <div v-if="showLivePanel" class="log-panel">
+          <div class="log-head">
+            <span class="log-dot"></span>
+            <b>生成现场 · SSE</b>
+            <span :class="['live', { 'live-on': isCreating }]">{{ isCreating ? 'LIVE' : '待命' }}</span>
+          </div>
+          <div class="log-body">
+            <div v-if="realtimeLogs.length === 0" class="log-empty">尚无日志 · 落笔之后，生成现场会在这里实时直播</div>
+            <div
+              v-for="(log, index) in realtimeLogs"
+              :key="index"
+              class="ln"
+            >
+              <span class="t">{{ formatLogTime(log.timestamp) }}</span>
+              <span :class="['msg', log.level]">{{ log.message }}</span>
+              <span v-if="log.level === 'success'" class="ok">✓</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 配额信息（仅输入阶段且现场面板未出现时展示，避免与 sticky 面板互相遮挡） -->
+        <div v-if="currentPhase === 'INPUT' && !showLivePanel" class="panel-section quota-section">
           <h4 class="panel-title">
             <CrownOutlined />
             创作配额
@@ -319,15 +404,15 @@
             <a-progress
               :percent="(quota / 5) * 100"
               :show-info="false"
-              :stroke-color="quota <= 1 ? '#ff4d4f' : '#B45309'"
+              :stroke-color="quota <= 1 ? '#C4402F' : '#3D6B5C'"
               size="small"
               class="quota-progress"
             />
           </div>
         </div>
 
-        <!-- 热门选题 -->
-        <div v-if="currentPhase === 'INPUT'" class="panel-section">
+        <!-- 热门选题（与配额同条件，与现场面板互斥） -->
+        <div v-if="currentPhase === 'INPUT' && !showLivePanel" class="panel-section">
           <h4 class="panel-title">
             <BulbOutlined />
             热门选题
@@ -344,83 +429,8 @@
           </div>
         </div>
 
-        <!-- 创作技巧 -->
-        <div v-if="currentPhase === 'INPUT'" class="panel-section">
-          <h4 class="panel-title">
-            <StarOutlined />
-            爆款技巧
-          </h4>
-          <div class="tips-list">
-            <div class="tip-item">
-              <div class="tip-icon">1</div>
-              <div class="tip-content">
-                <div class="tip-title">抓住痛点</div>
-                <div class="tip-desc">直击用户最关心的问题</div>
-              </div>
-            </div>
-            <div class="tip-item">
-              <div class="tip-icon">2</div>
-              <div class="tip-content">
-                <div class="tip-title">制造悬念</div>
-                <div class="tip-desc">让读者产生好奇心</div>
-              </div>
-            </div>
-            <div class="tip-item">
-              <div class="tip-icon">3</div>
-              <div class="tip-content">
-                <div class="tip-title">数字吸引</div>
-                <div class="tip-desc">使用具体数据增加说服力</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 创作进行中的提示（所有创作阶段） -->
-        <div v-if="isCreating || currentPhase === 'TITLE_SELECTING' || currentPhase === 'OUTLINE_EDITING'" class="panel-section">
-          <h4 class="panel-title">
-            <ClockCircleOutlined />
-            创作进度
-          </h4>
-          <div class="progress-info">
-            <div class="progress-step">
-              <span class="step-label">当前步骤</span>
-              <span class="step-value">{{ agentSteps[currentStep]?.title }}</span>
-            </div>
-            <div class="progress-step">
-              <span class="step-label">已完成</span>
-              <span class="step-value">{{ currentStep }}/{{ agentSteps.length }}</span>
-            </div>
-          </div>
-          <div v-if="isCreating" class="progress-tip">
-            <InfoCircleOutlined />
-            <span>AI 正在努力创作中，请耐心等待...</span>
-          </div>
-          <div v-else class="progress-tip waiting">
-            <InfoCircleOutlined />
-            <span>等待您的确认...</span>
-          </div>
-        </div>
-
-        <!-- 实时执行日志 -->
-        <div v-if="realtimeLogs.length > 0" class="panel-section realtime-logs-section">
-          <h4 class="panel-title">
-            <FileTextOutlined />
-            执行日志
-          </h4>
-          <div class="logs-container">
-            <div
-              v-for="(log, index) in realtimeLogs"
-              :key="index"
-              :class="['log-entry', log.level]"
-            >
-              <span class="log-time">{{ formatLogTime(log.timestamp) }}</span>
-              <span class="log-message">{{ log.message }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 当前选题提示 -->
-        <div v-if="currentPhase !== 'INPUT' && currentPhase !== 'COMPLETED' && topic" class="panel-section">
+        <!-- 当前选题提示（与现场面板互斥） -->
+        <div v-if="currentPhase !== 'INPUT' && currentPhase !== 'COMPLETED' && topic && !showLivePanel" class="panel-section">
           <h4 class="panel-title">
             <BulbOutlined />
             创作选题
@@ -430,124 +440,10 @@
           </div>
         </div>
 
-        <!-- 阶段提示 -->
-        <div v-if="currentPhase === 'TITLE_GENERATING'" class="panel-section tips-section">
-          <h4 class="panel-title">
-            <StarOutlined />
-            提示
-          </h4>
-          <div class="tips-list">
-            <div class="tip-item">
-              <div class="tip-icon">💡</div>
-              <div class="tip-content">
-                <div class="tip-desc">AI 正在分析您的选题，生成多个吸引眼球的标题方案</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="currentPhase === 'TITLE_SELECTING'" class="panel-section tips-section">
-          <h4 class="panel-title">
-            <StarOutlined />
-            提示
-          </h4>
-          <div class="tips-list">
-            <div class="tip-item">
-              <div class="tip-icon">✅</div>
-              <div class="tip-content">
-                <div class="tip-desc">选择最符合您期望的标题，或添加补充描述让 AI 更好地理解您的需求</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="currentPhase === 'OUTLINE_GENERATING'" class="panel-section tips-section">
-          <h4 class="panel-title">
-            <StarOutlined />
-            提示
-          </h4>
-          <div class="tips-list">
-            <div class="tip-item">
-              <div class="tip-icon">📝</div>
-              <div class="tip-content">
-                <div class="tip-desc">AI 正在为您规划文章结构，构建清晰的章节脉络</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div v-if="currentPhase === 'OUTLINE_EDITING'" class="panel-section tips-section">
-          <h4 class="panel-title">
-            <StarOutlined />
-            编辑技巧
-          </h4>
-          <div class="tips-list">
-            <div class="tip-item">
-              <div class="tip-icon">1</div>
-              <div class="tip-content">
-                <div class="tip-title">拖动排序</div>
-                <div class="tip-desc">点击章节左侧拖动图标可调整章节顺序</div>
-              </div>
-            </div>
-            <div class="tip-item">
-              <div class="tip-icon">2</div>
-              <div class="tip-content">
-                <div class="tip-title">AI 助手</div>
-                <div class="tip-desc">使用 AI 助手快速修改大纲结构</div>
-              </div>
-            </div>
-            <div class="tip-item">
-              <div class="tip-icon">3</div>
-              <div class="tip-content">
-                <div class="tip-title">添加章节</div>
-                <div class="tip-desc">根据需要添加或删除章节和要点</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 操作按钮 -->
-        <div v-if="currentPhase === 'COMPLETED'" class="panel-section">
-          <h4 class="panel-title">
-            <ThunderboltOutlined />
-            快捷操作
-          </h4>
-          <div class="action-list">
-            <a-button block @click="copyContent" class="action-btn">
-              <CopyOutlined />
-              复制全文
-            </a-button>
-            <a-button block @click="viewArticle" class="action-btn">
-              <EyeOutlined />
-              查看详情
-            </a-button>
-            <a-button block type="primary" @click="resetCreate" class="action-btn primary">
-              <RedoOutlined />
-              再创作一篇
-            </a-button>
-          </div>
-        </div>
-
-        <!-- 完成后的统计 -->
-        <div v-if="currentPhase === 'COMPLETED'" class="panel-section stats-section">
-          <h4 class="panel-title">
-            <BarChartOutlined />
-            文章统计
-          </h4>
-          <div class="stats-grid">
-            <div class="stat-item">
-              <div class="stat-value">{{ (article.fullContent || article.content || '').length }}</div>
-              <div class="stat-label">字数</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-value">{{ article.images?.length || 0 }}</div>
-              <div class="stat-label">配图</div>
-            </div>
-          </div>
-        </div>
+        <!-- 完成态的快捷操作与统计已迁入左侧「成稿一览」，右栏仅保留 sticky 日志，避免遮挡 -->
 
         <!-- 底部帮助链接 -->
-        <div class="panel-footer">
+        <div v-if="!showLivePanel" class="panel-footer">
           <a class="help-link">
             <QuestionCircleOutlined />
             使用帮助
@@ -578,33 +474,27 @@ import { message } from 'ant-design-vue'
 import { useLoginUserStore } from '@/stores/loginUser'
 import {
   RocketOutlined,
-  LoadingOutlined,
-  CheckCircleOutlined,
   CheckCircleFilled,
   CopyOutlined,
   EyeOutlined,
   RedoOutlined,
-  ThunderboltOutlined,
   BulbOutlined,
-  StarOutlined,
-  ClockCircleOutlined,
-  InfoCircleOutlined,
   BarChartOutlined,
   QuestionCircleOutlined,
   MessageOutlined,
   PictureOutlined,
   WarningOutlined,
   CrownOutlined,
-  FileTextOutlined,
   DownloadOutlined,
   FileMarkdownOutlined,
   FilePdfOutlined
 } from '@ant-design/icons-vue'
-import { createArticle, confirmTitle, confirmOutline, confirmContent } from '@/api/articleController'
+import { createArticle, confirmTitle, confirmOutline, confirmContent, getArticle } from '@/api/articleController'
 import { connectSSE, closeSSE, type SSEMessage } from '@/utils/sse'
 import { isAdmin as checkIsAdmin, isVip as checkIsVip, hasQuota as checkHasQuota } from '@/utils/permission'
 import { exportAsMarkdown, exportAsPdf } from '@/utils/article'
 import { marked } from 'marked'
+import { FOUR_BRUSHES, resolveCurrentBrush, getBrushState, type BrushState } from '@/constants/fourBrushes'
 import TitleSelectingStage from './components/TitleSelectingStage.vue'
 import OutlineEditingStage from './components/OutlineEditingStage.vue'
 import ContentConfirmStage from './components/ContentConfirmStage.vue'
@@ -618,16 +508,6 @@ const isAdmin = computed(() => checkIsAdmin(loginUserStore.loginUser))
 const isVip = computed(() => checkIsVip(loginUserStore.loginUser))
 const quota = computed(() => loginUserStore.loginUser.quota ?? 0)
 const hasQuota = computed(() => checkHasQuota(loginUserStore.loginUser))
-
-// 智能体步骤（对应后端 6 个步骤）
-const agentSteps = [
-  { title: '生成标题', description: 'AI 分析选题，生成吸睛标题' },
-  { title: '规划大纲', description: '构建文章结构，理清脉络' },
-  { title: '撰写正文', description: '流式生成高质量文章内容' },
-  { title: '分析配图', description: '智能分析配图需求和位置' },
-  { title: '生成配图', description: '自动匹配高清无版权图片' },
-  { title: '图文合成', description: '将配图插入正文，完美呈现' },
-]
 
 // 示例选题
 const exampleTopics = [
@@ -659,6 +539,12 @@ const errorVisible = ref(false)
 const errorMessage = ref('')
 const confirmLoading = ref(false)
 
+// 四笔进度：把真实阶段/智能体步骤映射为四笔索引与各笔状态（映射集中在常量文件）
+const currentBrush = computed(() => resolveCurrentBrush(currentPhase.value, currentStep.value))
+const brushStates = computed<BrushState[]>(() =>
+  FOUR_BRUSHES.map((_, index) => getBrushState(index, currentBrush.value))
+)
+
 // 实时日志
 interface RealtimeLog {
   timestamp: number
@@ -667,14 +553,12 @@ interface RealtimeLog {
 }
 const realtimeLogs = ref<RealtimeLog[]>([])
 
+/* 「生成现场」面板显隐：开始生成（或已有历史日志）时出现，初始与纯输入态隐藏。
+   与右侧配额/热门选题互斥，避免 sticky 面板滚动时遮挡它们 */
+const showLivePanel = computed(() => isCreating.value || realtimeLogs.value.length > 0)
+
 // 标题方案
 const titleOptions = ref<Array<{mainTitle: string, subTitle: string}>>([])
-
-// 大纲数据
-const outline = ref<Array<{section: number, title: string, points: string[]}>>([])
-
-// 大纲数据（流式）
-const outlineRaw = ref('')
 
 // 大纲项类型
 interface OutlineItem {
@@ -682,6 +566,12 @@ interface OutlineItem {
   points: string[]
   section: number
 }
+
+// 大纲数据
+const outline = ref<OutlineItem[]>([])
+
+// 大纲数据（流式）
+const outlineRaw = ref('')
 
 // 规范化大纲条目（流式解析时 points 可能尚未闭合，兜底为空数组，避免模板渲染报错）
 const normalizeOutlineItem = (item: any): OutlineItem => ({
@@ -734,6 +624,15 @@ const imageCount = ref(0)
 const totalImages = ref(5)
 const imageProgress = ref(0)
 
+// 分段生成状态（ContentAgent 按大纲逐段推送段落级事件）
+const sectionContents = ref<string[]>([])
+const currentSectionIndex = ref(-1)
+const completedSections = ref(0)
+const totalSections = ref(0)
+
+// 未完成任务的本地持久化 key（切页/刷新后据此恢复创作现场）
+const ACTIVE_TASK_KEY = 'activeTaskId'
+
 // 文章数据
 const article = ref<Partial<API.ArticleVO>>({
   mainTitle: '',
@@ -750,6 +649,13 @@ const markdownToHtml = (markdown: string | undefined) => {
   return marked(markdown || '')
 }
 
+// 段落视觉状态：done 已完成 / current 生成中 / pending 待生成
+const sectionState = (idx: number): 'done' | 'current' | 'pending' => {
+  if (idx < completedSections.value) return 'done'
+  if (idx === currentSectionIndex.value) return 'current'
+  return 'pending'
+}
+
 // 自动滚动到底部
 const scrollToBottom = () => {
   nextTick(() => {
@@ -757,6 +663,165 @@ const scrollToBottom = () => {
       mainContentRef.value.scrollTop = mainContentRef.value.scrollHeight
     }
   })
+}
+
+// SSE 推送记录的时间戳：只要收到任意一条消息就刷新
+const lastSseAt = ref<number>(Date.now())
+let watchdogTimer: ReturnType<typeof setInterval> | null = null
+
+// 停止看门狗
+const stopWatchdog = () => {
+  if (watchdogTimer) {
+    clearInterval(watchdogTimer)
+    watchdogTimer = null
+  }
+}
+
+// 用服务端终态补齐前端结果（SSE 丢失时的兜底路径）
+const applyCompletedArticle = (vo: API.ArticleVO) => {
+  if (vo.mainTitle) article.value.mainTitle = vo.mainTitle
+  if (vo.subTitle) article.value.subTitle = vo.subTitle
+  if (vo.content) article.value.content = vo.content
+  if (vo.fullContent) article.value.fullContent = vo.fullContent
+  if (vo.images) article.value.images = vo.images
+  if (vo.id) article.value.id = vo.id
+  if (vo.coverImage) article.value.coverImage = vo.coverImage
+  currentPhase.value = 'COMPLETED'
+  currentStep.value = 6
+  isCompleted.value = true
+  isCreating.value = false
+  isStreaming.value = false
+  isOutlineStreaming.value = false
+  addLog('实时连接静默超时，已通过状态同步补齐最终结果', 'success')
+  message.success('文章创作完成!')
+}
+
+/**
+ * 应用 SSE 快照 —— 断点恢复的核心
+ * SSE 建立后后端会立即推一条 SNAPSHOT，携带当前阶段与已生成内容。
+ * 按 phase 恢复到对应 UI；实时进度（流式段落）也会被后续消息继续追加。
+ */
+const applySnapshot = (snap: any) => {
+  addLog('已恢复创作现场', 'success')
+  if (snap.topic) topic.value = snap.topic
+  if (snap.mainTitle) article.value.mainTitle = snap.mainTitle
+  if (snap.subTitle) article.value.subTitle = snap.subTitle
+  if (snap.titleOptions) titleOptions.value = snap.titleOptions
+  if (snap.outline && snap.outline.length > 0) {
+    outline.value = snap.outline
+    outlineRaw.value = JSON.stringify(snap.outline)
+  } else if (snap.outlineRaw) {
+    outlineRaw.value = snap.outlineRaw
+  }
+  if (Array.isArray(snap.sectionContents)) sectionContents.value = snap.sectionContents
+  if (snap.content) article.value.content = snap.content
+  if (snap.images) article.value.images = snap.images
+  if (snap.fullContent) article.value.fullContent = snap.fullContent
+  currentSectionIndex.value = snap.currentSectionIndex ?? -1
+  completedSections.value = snap.completedSections ?? 0
+  totalSections.value = snap.totalSections ?? 0
+  if (snap.totalImages) totalImages.value = snap.totalImages
+  if (Array.isArray(snap.images)) {
+    imageCount.value = snap.images.length
+    if (totalImages.value > 0) {
+      imageProgress.value = Math.round((imageCount.value / totalImages.value) * 100)
+    }
+  }
+
+  // 按阶段恢复 UI
+  switch (snap.phase) {
+    case 'TITLE_GENERATING':
+      currentPhase.value = 'TITLE_GENERATING'
+      currentStep.value = 0
+      isCreating.value = true
+      startWatchdog()
+      break
+    case 'TITLE_SELECTING':
+      currentPhase.value = 'TITLE_SELECTING'
+      currentStep.value = 1
+      break
+    case 'OUTLINE_GENERATING':
+      currentPhase.value = 'OUTLINE_GENERATING'
+      currentStep.value = 1
+      isCreating.value = true
+      isOutlineStreaming.value = true
+      startWatchdog()
+      break
+    case 'OUTLINE_EDITING':
+      currentPhase.value = 'OUTLINE_EDITING'
+      currentStep.value = 1
+      break
+    case 'CONTENT_GENERATING':
+      currentPhase.value = 'CONTENT_GENERATING'
+      currentStep.value = 2
+      isCreating.value = true
+      isStreaming.value = currentSectionIndex.value >= 0 && completedSections.value < totalSections.value
+      startWatchdog()
+      break
+    case 'CONTENT_CONFIRMING':
+      currentPhase.value = 'CONTENT_CONFIRMING'
+      currentStep.value = 3
+      break
+    case 'IMAGE_GENERATING':
+      currentPhase.value = 'CONTENT_GENERATING'
+      currentStep.value = 4
+      isCreating.value = true
+      startWatchdog()
+      break
+    case 'COMPLETED':
+      currentPhase.value = 'COMPLETED'
+      currentStep.value = 6
+      isCompleted.value = true
+      isCreating.value = false
+      sessionStorage.removeItem(ACTIVE_TASK_KEY)
+      break
+    case 'FAILED':
+      errorMessage.value = snap.errorMessage || '创作失败'
+      errorVisible.value = true
+      sessionStorage.removeItem(ACTIVE_TASK_KEY)
+      break
+  }
+}
+
+/**
+ * 启动流式看门狗
+ * 场景：浏览器休眠、代理断流、服务端已把连接判为失效等情况，
+ * 会造成 SSE 链路静默断开而任务其实早已跑完 —— 界面就会永久停在"生成中"。
+ * 兜底：生成中若超过 15 秒没收到任何推送，主动查询任务状态；
+ * 已完结就直接补齐结果，仍在进行则继续等待。
+ */
+const startWatchdog = () => {
+  stopWatchdog()
+  lastSseAt.value = Date.now()
+  watchdogTimer = setInterval(async () => {
+    // 只在"确实在生成"时巡检，用户在选标题/改大纲/确认配图时不打扰
+    if (!isCreating.value || !taskId.value) {
+      return
+    }
+    if (Date.now() - lastSseAt.value < 15000) {
+      return
+    }
+    try {
+      const res = await getArticle({ taskId: taskId.value })
+      const vo = res.data?.data
+      if (!vo) return
+      if (vo.status === 'COMPLETED') {
+        applyCompletedArticle(vo)
+        stopWatchdog()
+      } else if (vo.status === 'FAILED') {
+        errorMessage.value = vo.errorMessage || '创作失败'
+        errorVisible.value = true
+        isCreating.value = false
+        addLog(`创作失败: ${vo.errorMessage || '未知错误'}`, 'error')
+        stopWatchdog()
+      } else {
+        // 任务仍在进行，重置静默计时，避免重复轮询
+        lastSseAt.value = Date.now()
+      }
+    } catch {
+      // 查询失败不打断创作，等下一轮
+    }
+  }, 5000)
 }
 
 // 开始创作
@@ -800,6 +865,8 @@ const startCreate = async () => {
     }
     taskId.value = newTaskId
     addLog(`任务创建成功，ID: ${newTaskId}`, 'success')
+    // 持久化 taskId：切换页面/刷新后 onMounted 据此恢复创作现场
+    sessionStorage.setItem(ACTIVE_TASK_KEY, newTaskId)
 
     // 刷新用户信息（更新配额）
     await loginUserStore.fetchLoginUser()
@@ -811,6 +878,7 @@ const startCreate = async () => {
       onError: handleSSEError,
       onComplete: handleSSEComplete,
     })
+    startWatchdog()
   } catch (error) {
     const err = error as Error
     message.error(err.message || '创建任务失败')
@@ -839,9 +907,16 @@ const formatLogTime = (timestamp: number) => {
 
 // 处理 SSE 消息
 const handleSSEMessage = (msg: SSEMessage) => {
+  // 收到任意推送都刷新看门狗计时：真正的危险信号是"静默"
+  lastSseAt.value = Date.now()
   console.log('SSE消息:', msg)
 
   switch (msg.type) {
+    case 'SNAPSHOT':
+      // SSE 建立后的第一条消息：恢复创作现场（切页/刷新/断线重连场景）
+      applySnapshot(msg)
+      break
+
     case 'AGENT1_COMPLETE':
       // 智能体1完成，进入标题生成阶段（显示加载）
       currentPhase.value = 'TITLE_GENERATING'
@@ -882,13 +957,39 @@ const handleSSEMessage = (msg: SSEMessage) => {
       // 不改变 currentStep，保持在步骤1，等用户确认大纲后才进入步骤2
       break
 
+    case 'CONTENT_SECTION_START':
+      // 分段模式：某段开始生成
+      currentPhase.value = 'CONTENT_GENERATING'
+      currentStep.value = 2
+      isCreating.value = true
+      isStreaming.value = true
+      currentSectionIndex.value = msg.sectionIndex ?? 0
+      totalSections.value = msg.totalSections ?? totalSections.value
+      addLog(`开始撰写第 ${(msg.sectionIndex ?? 0) + 1}/${msg.totalSections} 段：${msg.sectionTitle || ''}`, 'info')
+      break
+
     case 'AGENT3_STREAMING':
       // 正文流式输出，进入步骤2（撰写正文）
       currentPhase.value = 'CONTENT_GENERATING'
       currentStep.value = 2
       isStreaming.value = true
-      article.value.content += msg.content || ''
+      if (typeof msg.sectionIndex === 'number') {
+        // 分段模式：追加到对应段落，并同步整篇内容（供 CONTENT_CONFIRMING 阶段展示）
+        const idx = msg.sectionIndex
+        while (sectionContents.value.length <= idx) sectionContents.value.push('')
+        sectionContents.value[idx] += msg.content || ''
+        article.value.content = sectionContents.value.join('\n\n')
+      } else {
+        // 兼容：无段落信息时走整篇累积
+        article.value.content += msg.content || ''
+      }
       scrollToBottom()
+      break
+
+    case 'CONTENT_SECTION_COMPLETE':
+      // 分段模式：某段生成完成
+      completedSections.value = (msg.sectionIndex ?? 0) + 1
+      addLog(`第 ${(msg.sectionIndex ?? 0) + 1}/${msg.totalSections} 段已完成`, 'success')
       break
 
     case 'AGENT3_COMPLETE':
@@ -929,18 +1030,22 @@ const handleSSEMessage = (msg: SSEMessage) => {
 
     case 'ALL_COMPLETE':
       // 全部完成
+      stopWatchdog()
       currentPhase.value = 'COMPLETED'
       currentStep.value = 6
       isCompleted.value = true
+      sessionStorage.removeItem(ACTIVE_TASK_KEY)
       message.success('文章创作完成!')
-      addLog('✨ 文章创作完成！', 'success')
+      addLog('文章创作完成！', 'success')
       break
 
     case 'ERROR':
+      stopWatchdog()
       errorMessage.value = msg.message || '创作失败'
       errorVisible.value = true
       isCreating.value = false
       currentPhase.value = 'INPUT'
+      sessionStorage.removeItem(ACTIVE_TASK_KEY)
       addLog(`创作失败: ${msg.message || '未知错误'}`, 'error')
       break
   }
@@ -951,6 +1056,7 @@ const isTaskExpired = (msg?: string) => /过期|不存在/.test(msg || '')
 
 // 任务过期处理：提示并回到输入阶段
 const handleTaskExpired = () => {
+  stopWatchdog()
   message.error('任务已过期或已失效，请重新创建')
   closeSSE(eventSource)
   eventSource = null
@@ -983,6 +1089,7 @@ const handleConfirmTitle = async (data: {mainTitle: string, subTitle: string, us
     currentPhase.value = 'OUTLINE_GENERATING'
     isCreating.value = true
     addLog('标题已确认，开始生成大纲...', 'info')
+    startWatchdog()
   } catch (error) {
     const err = error as Error
     if (isTaskExpired(err.message)) {
@@ -1013,11 +1120,17 @@ const handleConfirmOutline = async (outlineData: Array<{section: number, title: 
     }
     // 更新 outlineRaw 为用户修改后的大纲，确保 CONTENT_GENERATING 阶段展示正确的大纲
     outlineRaw.value = JSON.stringify({ sections: outlineData })
+    // 初始化分段生成状态（段落事件随后端生成进度逐步填充）
+    sectionContents.value = []
+    currentSectionIndex.value = -1
+    completedSections.value = 0
+    totalSections.value = outlineData.length
     // 乐观切换到正文生成阶段，避免等待 SSE 期间重复点击
     currentPhase.value = 'CONTENT_GENERATING'
     currentStep.value = 2
     isCreating.value = true
     addLog('大纲已确认，开始生成正文...', 'info')
+    startWatchdog()
   } catch (error) {
     const err = error as Error
     if (isTaskExpired(err.message)) {
@@ -1058,6 +1171,7 @@ const handleConfirmContent = async (data: {generateImages: boolean, enabledImage
     currentPhase.value = 'CONTENT_GENERATING'
     currentStep.value = 3
     isCreating.value = true
+    startWatchdog()
   } catch (error) {
     const err = error as Error
     if (isTaskExpired(err.message)) {
@@ -1078,7 +1192,7 @@ const handleSSEError = (error: Event) => {
     return
   }
   // 服务端关闭连接（任务过期清理）或网络异常
-  message.warning('实时连接已断开，若长时间未操作任务可能已过期，请刷新页面继续或重新创建')
+  message.warning('实时连接已断开，刷新页面可自动恢复创作进度')
   isCreating.value = false
 }
 
@@ -1155,6 +1269,8 @@ const viewArticle = () => {
 
 // 重新创作
 const resetCreate = () => {
+  stopWatchdog()
+  sessionStorage.removeItem(ACTIVE_TASK_KEY)
   currentPhase.value = 'INPUT'
   topic.value = ''
   selectedStyle.value = ''
@@ -1173,6 +1289,10 @@ const resetCreate = () => {
   outlineRaw.value = ''
   confirmLoading.value = false
   realtimeLogs.value = []
+  sectionContents.value = []
+  currentSectionIndex.value = -1
+  completedSections.value = 0
+  totalSections.value = 0
   article.value = {
     mainTitle: '',
     subTitle: '',
@@ -1182,615 +1302,658 @@ const resetCreate = () => {
   }
 }
 
-// 组件挂载时检查路由参数
+// 组件挂载时检查路由参数 + 恢复未完成的创作现场
 onMounted(() => {
   if (route.query.topic) {
     topic.value = route.query.topic as string
+  }
+  // 恢复入口：优先路由 taskId（历史列表"继续创作"跳转），其次 sessionStorage（切页/刷新）
+  const resumeTaskId = (route.query.taskId as string) || sessionStorage.getItem(ACTIVE_TASK_KEY)
+  if (resumeTaskId) {
+    taskId.value = resumeTaskId
+    sessionStorage.setItem(ACTIVE_TASK_KEY, resumeTaskId)
+    addLog('检测到未完成的创作任务，正在恢复现场...', 'info')
+    // 建立 SSE：后端会先推一条 SNAPSHOT 快照，applySnapshot 据此恢复到当前阶段
+    eventSource = connectSSE(taskId.value, {
+      onMessage: handleSSEMessage,
+      onError: handleSSEError,
+      onComplete: handleSSEComplete,
+    })
   }
 })
 
 // 组件卸载前关闭 SSE
 onBeforeUnmount(() => {
+  stopWatchdog()
   closeSSE(eventSource)
 })
 </script>
 
 <style scoped lang="scss">
 .article-create-page {
-  height: calc(100vh - 64px);
-  background: var(--color-background-secondary);
-  overflow: hidden;
+  min-height: calc(100vh - 68px);
+  background: var(--paper);
+  padding: 0 20px 40px;
 }
 
+/* ==================== 四笔进度条 ==================== */
+.stepper {
+  display: flex;
+  align-items: flex-start;
+  max-width: 860px;
+  margin: 36px auto 8px;
+  padding: 0 12px;
+}
+
+.step-node {
+  flex: 1;
+  text-align: center;
+  position: relative;
+}
+
+/* 连接虚线：随状态变色 */
+.step-node:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 19px;
+  left: calc(50% + 30px);
+  right: calc(-50% + 30px);
+  border-top: 2px dashed var(--hairline);
+}
+
+.step-node.done:not(:last-child)::after {
+  border-top-color: var(--jade);
+}
+
+.step-node.current:not(:last-child)::after {
+  border-top-color: var(--gold);
+}
+
+.ball {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin: 0 auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--kai);
+  font-size: 16px;
+  font-weight: 700;
+  background: var(--paper-card);
+  border: 2.5px solid var(--hairline);
+  color: var(--ink-3);
+  transition: all 0.4s var(--ease);
+}
+
+/* current 态：朱砂描边放大 + 光圈 */
+.step-node.current .ball {
+  border-color: var(--vermilion);
+  color: var(--vermilion);
+  box-shadow: 0 0 0 5px rgba(196, 64, 47, 0.12);
+  transform: scale(1.08);
+}
+
+/* done 态：黛绿实心打勾 */
+.step-node.done .ball {
+  border-color: var(--jade);
+  background: var(--jade);
+  color: var(--paper);
+}
+
+.step-name {
+  font-family: var(--kai);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.step-node.current .step-name {
+  color: var(--vermilion);
+}
+
+.step-en {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.12em;
+}
+
+/* ==================== 主区布局：左舞台 + 右日志 ==================== */
 .create-layout {
   display: grid;
-  grid-template-columns: 320px 1fr 300px;
-  height: 100%;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 26px;
+  max-width: 1200px;
+  margin: 26px auto 0;
 }
 
-/* 左侧边栏 */
-.sidebar-left {
-  background: white;
-  border-right: 1px solid var(--color-border);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-}
-
-.sidebar-header {
-  margin-bottom: 24px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.sidebar-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin: 0 0 4px;
-  color: var(--color-text);
-}
-
-.sidebar-subtitle {
-  font-size: 13px;
-  color: var(--color-text-muted);
-  margin: 0;
-}
-
-.flow-timeline {
-  flex: 1;
-}
-
-.flow-item {
-  display: flex;
-  gap: 14px;
-  padding: 14px 0;
+/* 阶段舞台卡：白底 + 1.5px 墨边 + 硬阴影 */
+.stage {
   position: relative;
-
-  &:not(:last-child)::before {
-    content: '';
-    position: absolute;
-    left: 15px;
-    top: 46px;
-    bottom: -14px;
-    width: 2px;
-    background: var(--color-border);
-  }
-
-  &.completed::before {
-    background: var(--color-primary);
-  }
-
-  &.active::before {
-    background: linear-gradient(180deg, var(--color-primary) 50%, var(--color-border) 50%);
-  }
-}
-
-.flow-indicator {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-size: 14px;
-  transition: all var(--transition-normal);
-
-  .pending & {
-    background: var(--color-background-tertiary);
-    color: var(--color-text-muted);
-    border: 2px solid var(--color-border);
-  }
-
-  .active & {
-    background: rgba(180, 83, 9, 0.1);
-    color: var(--color-primary);
-    border: 2px solid var(--color-primary);
-  }
-
-  .completed & {
-    background: var(--color-primary);
-    color: white;
-  }
-
-  .step-number {
-    font-weight: 600;
-  }
-
-  .spin-icon {
-    animation: spin 1s linear infinite;
-  }
-}
-
-.flow-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.flow-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 2px;
-
-  .pending & {
-    color: var(--color-text-muted);
-  }
-
-  .active & {
-    color: var(--color-primary-dark);
-  }
-}
-
-.flow-desc {
-  font-size: 12px;
-  color: var(--color-text-muted);
-  line-height: 1.4;
-}
-
-.flow-status {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 6px;
-  font-size: 12px;
-  color: var(--color-primary);
-  font-weight: 500;
-}
-
-.status-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  animation: pulse 1.5s infinite;
-}
-
-
-/* 主内容区 */
-.main-content {
-  padding: 32px 40px;
+  background: var(--paper-card);
+  border: 1.5px solid var(--ink);
+  border-radius: 16px;
+  padding: 34px 38px;
+  box-shadow: 5px 5px 0 rgba(38, 34, 28, 0.1);
+  min-height: 430px;
+  overflow: hidden;
+  max-height: calc(100vh - 220px);
   overflow-y: auto;
-  background: white;
 }
 
-/* 输入状态 */
-.input-state {
-  max-width: 700px;
-  margin: 0 auto;
-  padding-top: 60px;
+/* 每笔 kicker：描金楷体 */
+.stage-kicker {
+  font-family: var(--kai);
+  color: var(--gold);
+  font-size: 14px;
+  letter-spacing: 0.24em;
+  margin-bottom: 6px;
 }
 
-.input-card {
-  background: var(--color-background-secondary);
-  border-radius: var(--radius-xl);
-  padding: 40px;
-}
-
-.input-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.input-title {
+.stage-title {
+  font-family: var(--kai);
   font-size: 28px;
   font-weight: 700;
-  margin: 0 0 8px;
-  color: var(--color-text);
+  margin: 0 0 18px;
+  color: var(--ink);
 }
 
-.input-subtitle {
-  font-size: 15px;
-  color: var(--color-text-secondary);
-  margin: 0;
+.stage-hint {
+  font-size: 13.5px;
+  color: var(--ink-2);
+  margin: 0 0 22px;
 }
 
-.input-area {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.topic-textarea {
-  font-size: 15px;
-  border-radius: var(--radius-lg);
-  padding: 16px;
-  background: white;
-
-  &:focus {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1);
-  }
-}
-
-.create-btn.ant-btn {
-  height: 52px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: var(--radius-lg);
-  background: var(--gradient-primary) !important;
-  border: none !important;
-  color: white !important;
-  box-shadow: 0 4px 14px rgba(180, 83, 9, 0.3) !important;
-
-  &:hover,
-  &:focus,
-  &:active {
-    background: var(--gradient-primary) !important;
-    color: white !important;
-    border: none !important;
-    box-shadow: 0 4px 14px rgba(180, 83, 9, 0.3) !important;
-    opacity: 0.92;
-  }
-
-  &:disabled,
-  &.ant-btn-disabled {
-    background: var(--color-border) !important;
-    box-shadow: none !important;
-    opacity: 0.6;
-    color: var(--color-text-muted) !important;
-  }
-}
-
-.quota-warning {
+/* ==================== 完成印章覆盖层 ==================== */
+.done-stamp {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin-top: 12px;
-  padding: 10px 16px;
-  background: rgba(255, 77, 79, 0.08);
-  border: 1px solid rgba(255, 77, 79, 0.2);
-  border-radius: var(--radius-md);
-  color: #ff4d4f;
-  font-size: 13px;
+  flex-direction: column;
+  background: rgba(247, 241, 229, 0.92);
+  z-index: 5;
+  pointer-events: none;
 }
 
-/* 文章风格选择 */
+.done-stamp .seal-big {
+  width: 150px;
+  height: 150px;
+  border: 5px solid var(--vermilion);
+  border-radius: 14px;
+  color: var(--vermilion);
+  font-family: var(--kai);
+  font-size: 64px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-8deg);
+  box-shadow: inset 0 0 0 3px rgba(196, 64, 47, 0.3);
+  background: rgba(255, 253, 247, 0.6);
+}
+
+.done-stamp small {
+  margin-top: 18px;
+  font-family: var(--kai);
+  font-size: 17px;
+  color: var(--ink-2);
+  letter-spacing: 0.3em;
+}
+
+/* ==================== 输入状态 ==================== */
+.topic-textarea {
+  border-radius: 12px !important;
+  font-size: 15px;
+}
+
 .style-section {
-  padding: 16px;
-  background: var(--color-background-secondary);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border-light);
+  margin-top: 22px;
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-family: var(--kai);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.section-tip {
+  font-size: 12px;
+  color: var(--ink-3);
 }
 
 .style-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-}
-
-.style-group :deep(.ant-radio-wrapper) {
-  margin: 0;
-  padding: 6px 12px;
-  background: white;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  transition: all 0.2s;
-}
-
-.style-group :deep(.ant-radio-wrapper:hover) {
-  border-color: var(--color-primary);
-  background: rgba(180, 83, 9, 0.04);
-}
-
-.style-group :deep(.ant-radio-wrapper-checked) {
-  border-color: var(--color-primary);
-  background: rgba(180, 83, 9, 0.08);
+  gap: 6px 16px;
 }
 
 .custom-word-count {
+  margin-top: 10px;
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 12px;
-}
-
-.word-count-input {
-  width: 180px;
+  max-width: 280px;
 }
 
 .word-count-unit {
-  color: var(--color-text-secondary);
-  font-size: 14px;
+  font-size: 13px;
+  color: var(--ink-2);
 }
 
-/* 配图方式选择 */
-.image-methods-section {
-  padding: 16px;
-  background: var(--color-background-secondary);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border-light);
+/* 朱砂「落笔开始」按钮：按压感 */
+.create-btn {
+  margin-top: 26px;
+  height: 50px;
+  padding: 0 34px;
+  font-family: var(--kai);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  border-radius: 999px !important;
+  background: var(--vermilion) !important;
+  border: none !important;
+  color: #FBF6EC !important;
+  box-shadow: 0 4px 0 var(--vermilion-dark) !important;
+  transition: all 0.3s var(--ease) !important;
+
+  &:hover:not(:disabled) {
+    background: var(--vermilion-dark) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--vermilion-dark) !important;
+  }
+
+  &:disabled {
+    background: var(--color-border) !important;
+    color: var(--ink-3) !important;
+    box-shadow: none !important;
+  }
 }
 
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.section-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.section-tip {
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.methods-group {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.methods-group :deep(.ant-checkbox-wrapper) {
-  margin: 0;
-  padding: 6px 12px;
-  background: white;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  transition: all 0.2s;
-}
-
-.methods-group :deep(.ant-checkbox-wrapper:hover) {
-  border-color: var(--color-primary);
-  background: rgba(180, 83, 9, 0.04);
-}
-
-.methods-group :deep(.ant-checkbox-wrapper-checked) {
-  border-color: var(--color-primary);
-  background: rgba(180, 83, 9, 0.08);
-}
-
-.methods-group :deep(.ant-checkbox-wrapper-disabled) {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.vip-icon {
-  color: var(--color-primary);
-  font-size: 12px;
-  margin-left: 4px;
-}
-
-.vip-notice {
-  display: flex;
+.quota-warning {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 12px;
-  padding: 10px 14px;
-  background: rgba(180, 83, 9, 0.08);
-  border-radius: var(--radius-md);
-  font-size: 12px;
-  color: var(--color-primary-dark);
-  border: 1px solid rgba(180, 83, 9, 0.2);
-
-  .anticon {
-    color: var(--color-primary);
-  }
-
-  .upgrade-link {
-    color: var(--color-primary);
-    font-weight: 600;
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
+  margin-top: 14px;
+  font-size: 13px;
+  color: var(--vermilion);
 }
 
-/* 创作进行中 */
-.creating-state,
-.completed-state {
-  max-width: 100%;
-}
-
-/* 标题区域 */
-.preview-header {
+/* ==================== 标题/大纲/正文展示 ==================== */
+.loading-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 80px 0;
   text-align: center;
-  margin-bottom: 24px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--color-border-light);
+
+  h3 {
+    font-family: var(--kai);
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--ink);
+  }
+
+  p {
+    margin: 0;
+    font-size: 13.5px;
+    color: var(--ink-3);
+  }
+}
+
+.preview-header {
+  padding: 16px 0 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px dashed var(--hairline);
 }
 
 .article-title {
-  font-size: 28px;
+  font-family: var(--kai);
+  font-size: 24px;
   font-weight: 700;
-  margin: 0 0 8px;
-  color: var(--color-text);
-  line-height: 1.4;
+  margin: 0 0 6px;
+  color: var(--ink);
 }
 
 .article-subtitle {
-  font-size: 16px;
-  color: var(--color-text-secondary);
+  font-size: 14px;
+  color: var(--ink-2);
   margin: 0;
 }
 
-/* 大纲预览 */
 .outline-preview {
-  margin-bottom: 24px;
-  padding: 20px 24px;
-  background: var(--color-background-secondary);
-  border-radius: var(--radius-lg);
+  margin-bottom: 22px;
 }
 
 .section-label {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-family: var(--kai);
   font-size: 14px;
-  font-weight: 600;
-  color: var(--color-primary);
-  margin-bottom: 16px;
-}
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 12px;
 
-.outline-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.outline-item {
-  padding: 12px 16px;
-  background: white;
-  border-radius: var(--radius-md);
-  border-left: 3px solid var(--color-primary);
-}
-
-.outline-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 8px;
-}
-
-.outline-points {
-  margin: 0;
-  padding-left: 18px;
-
-  li {
-    font-size: 13px;
-    color: var(--color-text-secondary);
-    line-height: 1.6;
-    margin-bottom: 4px;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-}
-
-/* 正文预览 */
-.content-preview {
-  line-height: 1.8;
-}
-
-.content-streaming-text {
-  line-height: 1.8;
-  font-size: 15px;
-  color: var(--color-text);
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-.markdown-body {
-  line-height: 1.8;
-  font-size: 15px;
-  color: var(--color-text);
-
-  :deep(h2) {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 24px 0 14px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--color-border);
-    color: var(--color-text);
-  }
-
-  :deep(p) {
-    margin-bottom: 14px;
-    text-indent: 2em;
-  }
-
-  :deep(img) {
-    display: block;
-    max-width: 100%;
-    max-height: 600px;
-    width: auto;
-    height: auto;
-    margin: 20px auto;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    object-fit: contain;
-  }
-
-  // Mermaid 图表特殊处理（SVG 格式）
-  :deep(img[src$=".svg"]) {
-    max-width: 800px;
-    max-height: 500px;
+  .anticon {
+    color: var(--gold);
   }
 }
 
 .typing-cursor {
-  display: inline-block;
-  animation: blink 1s infinite;
-  color: var(--color-primary);
-  font-weight: bold;
-  font-size: 18px;
+  color: var(--vermilion);
+  animation: blink 0.9s step-end infinite;
+}
+
+.outline-list {
+  display: grid;
+  gap: 10px;
+}
+
+.outline-item {
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 12px 16px;
+  transition: border-color 0.3s var(--ease);
+
+  &:hover {
+    border-color: var(--gold);
+  }
+}
+
+.outline-title {
+  font-family: var(--kai);
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.outline-points {
+  margin: 0;
+  padding-left: 22px;
+
+  li {
+    font-size: 13px;
+    color: var(--ink-2);
+    margin-bottom: 4px;
+  }
+}
+
+.outline-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13.5px;
+  color: var(--ink-3);
+  padding: 20px 0;
+}
+
+.content-preview {
+  margin-bottom: 18px;
+}
+
+.content-streaming-text {
+  font-size: 15.5px;
+  line-height: 2;
+  white-space: pre-wrap;
+  color: var(--ink);
+}
+
+.markdown-body {
+  font-size: 15.5px;
+  line-height: 2;
+  color: var(--ink);
+
+  :deep(h1), :deep(h2), :deep(h3) {
+    font-family: var(--kai);
+    color: var(--ink);
+  }
+
+  :deep(img) {
+    max-width: 100%;
+    border-radius: 10px;
+  }
 }
 
 .image-progress-box {
-  background: var(--color-background-secondary);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  margin-top: 24px;
-  text-align: center;
+  margin-top: 20px;
+  padding: 16px 18px;
+  background: var(--paper);
+  border: 1px dashed var(--hairline);
+  border-radius: 12px;
+}
 
-  .progress-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 16px;
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--color-text);
+/* ==================== 分段生成展示 ==================== */
+.section-progress-box {
+  margin-bottom: 18px;
+  padding: 14px 18px;
+  background: var(--paper);
+  border: 1px dashed var(--hairline);
+  border-radius: 12px;
+
+  .section-count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+}
+
+.section-list {
+  display: grid;
+  gap: 14px;
+}
+
+.section-block {
+  border-radius: 12px;
+  transition: all 0.3s var(--ease);
+
+  &.done {
+    padding: 4px 2px;
   }
 
-  .progress-hint {
-    margin: 12px 0 0;
-    font-size: 13px;
-    color: var(--color-text-muted);
+  &.current {
+    background: var(--paper);
+    border: 1.5px solid var(--gold);
+    padding: 16px 18px;
   }
+
+  &.pending {
+    background: var(--paper);
+    border: 1.5px dashed var(--hairline);
+    padding: 16px 18px;
+    opacity: 0.75;
+  }
+}
+
+.section-pending-title {
+  font-family: var(--kai);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink-2);
+}
+
+.section-pending-hint {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--ink-3);
+  letter-spacing: 0.1em;
+}
+
+.progress-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--kai);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 10px;
+
+  .anticon {
+    color: var(--gold);
+  }
+}
+
+.progress-hint {
+  margin: 8px 0 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--ink-3);
 }
 
 .loading-placeholder {
-  text-align: center;
-  padding: 100px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 0;
 
   p {
-    margin: 16px 0 0;
-    color: var(--color-text-secondary);
-    font-size: 15px;
+    margin: 0;
+    color: var(--ink-3);
+    font-size: 13.5px;
   }
 }
 
-/* 完成状态 */
 .success-header {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: var(--gradient-primary);
-  border-radius: var(--radius-full);
-  margin-bottom: 24px;
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-
-  .success-icon {
-    font-size: 16px;
-  }
-}
-
-/* 导出横幅 */
-.export-banner {
   display: flex;
   align-items: center;
+  gap: 8px;
+  font-family: var(--kai);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--jade);
+  margin-bottom: 14px;
+
+  .success-icon {
+    color: var(--jade);
+    font-size: 20px;
+  }
+}
+
+.export-banner {
+  display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 16px;
-  padding: 20px 24px;
-  background: linear-gradient(135deg, rgba(180, 83, 9, 0.06) 0%, rgba(212, 196, 184, 0.1) 100%);
-  border: 1.5px solid rgba(180, 83, 9, 0.2);
-  border-radius: var(--radius-lg);
-  margin-bottom: 24px;
+  margin-top: 22px;
+  padding: 16px 20px;
+  background: var(--paper-2);
+  border: 1px dashed var(--hairline);
+  border-radius: 12px;
+}
+
+/* ==================== 成稿一览（完成态左侧填充） ==================== */
+.completion-summary {
+  margin-top: 22px;
+  padding: 20px 22px;
+  background: var(--paper-card);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  box-shadow: 3px 3px 0 rgba(38, 34, 28, 0.06);
+}
+
+.summary-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--kai);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 16px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.summary-card {
+  text-align: center;
+  padding: 16px 8px;
+  background: var(--paper);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  transition: all 0.3s var(--ease);
+}
+
+.summary-card:hover {
+  border-color: var(--gold);
+  transform: translateY(-2px);
+}
+
+.summary-value {
+  font-family: var(--kai);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--vermilion);
+  line-height: 1.2;
+}
+
+.summary-label {
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.12em;
+}
+
+/* 快捷操作：三键横排 */
+.completion-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.completion-btn {
+  height: 46px;
+  font-family: var(--kai);
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  border-radius: 12px;
+  border: 1.5px solid var(--ink);
+  background: var(--paper-card);
+  color: var(--ink);
+  box-shadow: 3px 3px 0 rgba(38, 34, 28, 0.1);
+  transition: all 0.3s var(--ease);
+}
+
+.completion-btn:hover {
+  transform: translate(-1px, -1px);
+  border-color: var(--vermilion);
+  box-shadow: 4px 4px 0 rgba(196, 64, 47, 0.2);
+}
+
+.completion-btn.primary {
+  background: var(--vermilion);
+  border-color: var(--vermilion);
+  color: #fbf6ec;
+  box-shadow: 0 4px 0 var(--vermilion-dark);
+}
+
+.completion-btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--vermilion-dark);
 }
 
 .export-banner-left {
@@ -1800,73 +1963,174 @@ onBeforeUnmount(() => {
 }
 
 .export-banner-icon {
-  font-size: 24px;
-  color: var(--color-primary);
+  font-size: 22px;
+  color: var(--gold);
 }
 
 .export-banner-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
 }
 
 .export-banner-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text);
+  font-family: var(--kai);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink);
 }
 
 .export-banner-desc {
-  font-size: 13px;
-  color: var(--color-text-secondary);
+  font-size: 12px;
+  color: var(--ink-3);
 }
 
 .export-banner-actions {
   display: flex;
-  gap: 12px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
-.export-btn {
-  font-weight: 600;
-}
-
-/* 右侧辅助面板 */
-.sidebar-right {
-  background: white;
-  border-left: 1px solid var(--color-border);
-  padding: 24px;
+/* ==================== 右侧：SSE 日志面板（羊皮纸浅色，固定不随滚动） ==================== */
+.log-panel {
+  background: var(--paper-card);
+  border: 1.5px solid var(--hairline);
+  border-radius: 16px;
+  padding: 22px 22px 18px;
+  color: var(--ink-2);
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  overflow-y: auto;
+  min-height: 430px;
+  /* grid 子项默认 stretch 会令 sticky 失效，必须收回 stretch */
+  align-self: start;
+  position: sticky;
+  top: 88px;
+  /* sticky 面板浮于同栏其他内容之上（互斥后正常不会重叠，此为保险） */
+  z-index: 5;
+  box-shadow: 4px 4px 0 rgba(38, 34, 28, 0.06);
+}
+
+.log-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--hairline);
+  margin-bottom: 14px;
+
+  b {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    letter-spacing: 0.14em;
+    font-weight: 600;
+    color: var(--ink);
+  }
+}
+
+.log-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--jade);
+  box-shadow: 0 0 8px var(--jade);
+  flex-shrink: 0;
+}
+
+.live {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: var(--ink-3);
+}
+
+.live.live-on {
+  color: var(--vermilion);
+}
+
+.log-body {
+  flex: 1;
+  overflow: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.9;
+  color: var(--ink-2);
+}
+
+.log-empty {
+  color: var(--ink-3);
+  padding: 12px 0;
+}
+
+.ln {
+  display: block;
+}
+
+.ln .t {
+  color: var(--ink-3);
+  margin-right: 8px;
+}
+
+.ln .msg {
+  &.info {
+    color: var(--ink);
+  }
+
+  &.success {
+    color: var(--jade);
+  }
+
+  &.error {
+    color: var(--vermilion-dark);
+  }
+}
+
+.ln .ok {
+  color: var(--jade);
+  margin-left: 6px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ln {
+    animation: log-fadein 0.4s var(--ease) both;
+  }
+
+  @keyframes log-fadein {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+/* ==================== 右侧其他面板 ==================== */
+.sidebar-right {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
 .panel-section {
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--color-border-light);
-
-  &:last-of-type {
-    border-bottom: none;
-    padding-bottom: 0;
-  }
+  background: var(--paper-card);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 18px 20px;
 }
 
 .panel-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-  margin: 0 0 16px;
-}
+  font-family: var(--kai);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0 0 14px;
 
-/* 配额信息样式 */
-.quota-section {
-  background: linear-gradient(135deg, rgba(180, 83, 9, 0.05) 0%, rgba(180, 83, 9, 0.02) 100%);
-  border-radius: var(--radius-lg);
-  padding: 16px !important;
-  margin: -8px -8px 12px -8px;
+  .anticon {
+    color: var(--gold);
+  }
 }
 
 .quota-admin {
@@ -1876,491 +2140,184 @@ onBeforeUnmount(() => {
 }
 
 .quota-badge {
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
+  padding: 3px 12px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
 
   &.admin {
-    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-    color: white;
+    background: rgba(196, 64, 47, 0.1);
+    color: var(--vermilion);
   }
 
   &.vip {
-    background: var(--gradient-primary);
-    color: white;
+    background: rgba(192, 138, 62, 0.14);
+    color: var(--gold);
   }
 }
 
 .quota-text {
+  font-family: var(--kai);
   font-size: 14px;
-  color: var(--color-text-secondary);
-}
-
-.quota-info {
-  text-align: center;
+  color: var(--ink-2);
 }
 
 .quota-display {
   display: flex;
   align-items: baseline;
-  justify-content: center;
   gap: 4px;
 }
 
 .quota-number {
-  font-size: 36px;
+  font-family: var(--kai);
+  font-size: 34px;
   font-weight: 700;
-  color: var(--color-primary);
-  line-height: 1;
+  color: var(--ink);
+  line-height: 1.2;
 
   &.low {
-    color: #faad14;
+    color: var(--vermilion);
   }
 
   &.empty {
-    color: #ff4d4f;
+    color: var(--vermilion-dark);
   }
 }
 
 .quota-unit {
-  font-size: 14px;
-  color: var(--color-text-muted);
+  font-size: 13px;
+  color: var(--ink-3);
 }
 
 .quota-label {
   font-size: 12px;
-  color: var(--color-text-muted);
-  margin: 4px 0 12px;
+  color: var(--ink-3);
+  letter-spacing: 0.1em;
+  margin: 4px 0 10px;
 }
 
-.quota-progress {
-  max-width: 120px;
-  margin: 0 auto;
-}
-
-/* 热门选题 */
 .hot-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
+/* 热门选题 chip：虚线胶囊，hover 朱砂 */
 .hot-tag {
-  display: inline-block;
-  padding: 8px 12px;
-  background: var(--color-background-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  font-size: 12px;
-  color: var(--color-text-secondary);
+  font-family: var(--kai);
+  font-size: 13px;
+  color: var(--ink-2);
+  background: var(--paper);
+  border: 1.5px dashed var(--hairline);
+  border-radius: 999px;
+  padding: 6px 14px;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: all 0.3s var(--ease);
 
   &:hover {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    background: rgba(180, 83, 9, 0.05);
-    transform: translateY(-1px);
+    border-color: var(--vermilion);
+    color: var(--vermilion);
   }
 }
 
-/* 创作技巧 */
-.tips-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.tip-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px;
-  background: var(--color-background-secondary);
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
-
-  &:hover {
-    background: rgba(180, 83, 9, 0.05);
-  }
-}
-
-.tip-icon {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: var(--gradient-primary);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.tip-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.tip-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 2px;
-}
-
-.tip-desc {
-  font-size: 11px;
-  color: var(--color-text-muted);
-  line-height: 1.4;
-}
-
-/* 创作进度信息 */
-.progress-info {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.progress-step {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 12px;
-  background: var(--color-background-secondary);
-  border-radius: var(--radius-md);
-}
-
-.step-label {
-  font-size: 12px;
-  color: var(--color-text-muted);
-}
-
-.step-value {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-primary);
-}
-
-.progress-tip {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 12px;
-  background: rgba(180, 83, 9, 0.08);
-  border-radius: var(--radius-md);
-  font-size: 12px;
-  color: var(--color-primary-dark);
-  line-height: 1.5;
-
-  .anticon {
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-
-  &.waiting {
-    background: rgba(250, 173, 20, 0.08);
-    color: #d48806;
-  }
-}
-
-/* 实时日志 */
-.realtime-logs-section {
-  .logs-container {
-    max-height: 300px;
-    overflow-y: auto;
-    background: var(--color-background);
-    border-radius: var(--radius-md);
-    border: 1px solid var(--color-border-light);
-    padding: 8px;
-
-    .log-entry {
-      display: flex;
-      gap: 8px;
-      padding: 6px 8px;
-      font-size: 11px;
-      line-height: 1.4;
-      border-radius: var(--radius-sm);
-      margin-bottom: 4px;
-      transition: background var(--transition-fast);
-
-      &:hover {
-        background: var(--color-background-secondary);
-      }
-
-      &.success {
-        .log-time {
-          color: var(--color-success);
-        }
-      }
-
-      &.error {
-        background: rgba(239, 68, 68, 0.05);
-        .log-time {
-          color: var(--color-error);
-        }
-        .log-message {
-          color: var(--color-error);
-        }
-      }
-
-      .log-time {
-        flex-shrink: 0;
-        color: var(--color-text-muted);
-        font-weight: 500;
-      }
-
-      .log-message {
-        flex: 1;
-        color: var(--color-text-secondary);
-      }
-    }
-
-    &::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    &::-webkit-scrollbar-thumb {
-      background: var(--color-border);
-      border-radius: var(--radius-full);
-    }
-
-    &::-webkit-scrollbar-track {
-      background: transparent;
-    }
-  }
-}
-
-/* 选题展示 */
 .topic-display {
+  background: var(--paper);
+  border-radius: 10px;
   padding: 12px 16px;
-  background: var(--color-background-secondary);
-  border-radius: var(--radius-md);
-  border-left: 3px solid var(--color-primary);
 
   p {
     margin: 0;
-    font-size: 13px;
-    color: var(--color-text);
-    line-height: 1.6;
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.7;
   }
 }
 
-/* 提示面板样式 */
-.tips-section {
-  .tip-icon {
-    background: transparent;
-    font-size: 16px;
-  }
-
-  .tip-desc {
-    font-size: 12px;
-  }
+.action-list {
+  display: grid;
+  gap: 10px;
 }
 
-/* 文章统计 */
-.stats-section {
-  margin-top: auto;
+.action-btn {
+  border-radius: 10px;
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
 }
 
 .stat-item {
   text-align: center;
-  padding: 16px 12px;
-  background: var(--color-background-secondary);
-  border-radius: var(--radius-md);
+  background: var(--paper);
+  border-radius: 10px;
+  padding: 14px 8px;
 }
 
 .stat-value {
+  font-family: var(--kai);
   font-size: 24px;
   font-weight: 700;
-  color: var(--color-primary);
-  margin-bottom: 4px;
+  color: var(--ink);
 }
 
 .stat-label {
   font-size: 12px;
-  color: var(--color-text-muted);
+  color: var(--ink-3);
+  letter-spacing: 0.1em;
 }
 
-/* 底部帮助链接 */
 .panel-footer {
-  margin-top: auto;
-  padding-top: 16px;
-  border-top: 1px solid var(--color-border-light);
   display: flex;
-  justify-content: center;
-  gap: 20px;
-}
+  justify-content: space-between;
+  padding: 4px 8px;
 
-.help-link {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: color var(--transition-fast);
-
-  &:hover {
-    color: var(--color-primary);
-  }
-}
-
-.action-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.action-btn {
-  height: 40px;
-  font-size: 13px;
-  font-weight: 500;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  &.primary {
-    background: var(--gradient-primary);
-    border: none;
-    color: white;
+  .help-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    color: var(--ink-3);
+    cursor: pointer;
 
     &:hover {
-      opacity: 0.9;
+      color: var(--vermilion);
     }
   }
 }
 
-/* 阶段切换过渡动画 */
+/* ==================== 阶段切换过渡 ==================== */
 .fade-slide-enter-active,
 .fade-slide-leave-active {
-  transition: all 0.3s ease;
+  transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
 }
 
 .fade-slide-enter-from {
   opacity: 0;
-  transform: translateX(30px);
+  transform: translateY(10px);
 }
 
 .fade-slide-leave-to {
   opacity: 0;
-  transform: translateX(-30px);
+  transform: translateY(-6px);
 }
 
-/* 动画 */
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-/* 加载阶段样式 */
-.loading-stage {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 120px 40px;
-  text-align: center;
-
-  h3 {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--color-text);
-    margin: 24px 0 8px;
-  }
-
-  p {
-    font-size: 14px;
-    color: var(--color-text-secondary);
-    margin: 0;
-  }
-}
-
-/* 大纲生成中状态 */
-.outline-generating-state {
-  max-width: 100%;
-}
-
-.outline-loading {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 40px 20px;
-  font-size: 14px;
-  color: var(--color-text-secondary);
-}
-
-/* 渐入动画 */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.fade-in {
-  animation: fade-in 0.4s ease-out;
-}
-
-/* 响应式 */
-@media (max-width: 1400px) {
-  .create-layout {
-    grid-template-columns: 280px 1fr 260px;
-  }
-}
-
-@media (max-width: 1200px) {
-  .create-layout {
-    grid-template-columns: 240px 1fr 220px;
-  }
-}
-
+/* ==================== Responsive ==================== */
 @media (max-width: 992px) {
-  .article-create-page {
-    height: auto;
-    min-height: calc(100vh - 64px);
-    overflow: visible;
-  }
-
   .create-layout {
     grid-template-columns: 1fr;
-    height: auto;
   }
 
-  .sidebar-left,
-  .sidebar-right {
-    display: none;
+  .stepper {
+    flex-wrap: wrap;
+    gap: 12px;
   }
 
-  .main-content {
-    padding: 20px;
+  .log-panel {
+    position: static;
+    min-height: 280px;
+    order: -1;
   }
 }
 </style>

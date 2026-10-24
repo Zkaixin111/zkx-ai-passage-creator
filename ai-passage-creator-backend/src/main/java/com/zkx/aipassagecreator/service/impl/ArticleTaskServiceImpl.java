@@ -23,9 +23,12 @@ import com.zkx.aipassagecreator.model.entity.User;
 import com.zkx.aipassagecreator.model.enums.ArticlePhaseEnum;
 import com.zkx.aipassagecreator.model.enums.ArticleStatusEnum;
 import com.zkx.aipassagecreator.model.enums.ImageMethodEnum;
+import com.zkx.aipassagecreator.model.enums.SSEMessageTypeEnum;
 import com.zkx.aipassagecreator.model.vo.AgentExecutionStats;
+import com.zkx.aipassagecreator.model.vo.ImageItem;
 import com.zkx.aipassagecreator.model.vo.OutlineItem;
 import com.zkx.aipassagecreator.model.vo.OutlineSection;
+import com.zkx.aipassagecreator.model.vo.TitleOption;
 import com.zkx.aipassagecreator.service.ArticleTaskService;
 import com.zkx.aipassagecreator.service.UserService;
 import jakarta.annotation.Resource;
@@ -327,16 +330,23 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         // 不生成图片：invokeMergeOnly() = 仅合成（把正文拼接为最终内容）
         taskExecutor.execute(() -> {
             try {
+                long mergeStart = System.currentTimeMillis();
+                log.info("[{}] 配图/合成链路启动，generateImages={}", taskId, generateImages);
                 if (generateImages) {
                     articleAgentGraph.invokeImage(ctx);
                 } else {
                     articleAgentGraph.invokeMergeOnly(ctx);
                 }
+                log.info("[{}] 配图/合成链路返回，耗时 {}ms，cancelled={}", taskId,
+                        System.currentTimeMillis() - mergeStart, ctx.isCancelled());
                 if (ctx.isCancelled()) {
+                    log.warn("[{}] 链路被取消（智能体内部失败），任务提前结束且不再推送", taskId);
                     return;
                 }
                 // 全链路完成，持久化最终结果（正文+图文+封面图）
+                log.info("[{}] 开始持久化完成态 persistCompleted", taskId);
                 persistCompleted(article, ctx);
+                log.info("[{}] persistCompleted 完成", taskId);
             } catch (Exception e) {
                 log.error("配图/合成链路执行异常: {}", e.getMessage(), e);
                 markFailed(taskId, "内容生成失败");
@@ -465,6 +475,91 @@ public class ArticleTaskServiceImpl implements ArticleTaskService {
         }
         ctx.touch();  // 刷新活跃时间，重置 30 分钟倒计时
         return ctx;
+    }
+
+    /**
+     * SSE 连接建立后立即推送任务快照 —— 断点恢复的核心
+     * <p>
+     * 场景：用户切换页面/刷新/网络断开导致 EventSource 断开，期间智能体仍在后台执行，
+     * 这段时间的流式消息全部丢失。前端重连后先收到 SNAPSHOT，
+     * 一次性恢复当前阶段与已生成内容，后续的实时流式消息继续追加。
+     * <p>
+     * 数据源优先级：实时进度（content/段落进度）读内存 ctx；标题/大纲等落库字段读 article 表兜底。
+     * 任务已完成/失败时也会推快照（携带 fullContent/errorMessage），前端直接跳完成态或报错。
+     */
+    @Override
+    public void pushSnapshot(String taskId) {
+        try {
+            Article article;
+            try {
+                article = getArticleByTaskId(taskId);
+            } catch (Exception e) {
+                // 文章不存在：不推快照，让前端走自己的超时/错误处理
+                return;
+            }
+            ArticleTaskContext ctx = articleTaskRegistry.get(taskId);
+            Map<String, Object> snap = new HashMap<>();
+            snap.put("phase", article.getPhase());
+            snap.put("status", article.getStatus());
+            snap.put("topic", article.getTopic());
+            snap.put("mainTitle", article.getMainTitle());
+            snap.put("subTitle", article.getSubTitle());
+            snap.put("errorMessage", article.getErrorMessage());
+
+            // 标题方案：优先内存（最新），兜底数据库
+            if (ctx != null && ctx.getTitleOptions() != null && !ctx.getTitleOptions().isEmpty()) {
+                snap.put("titleOptions", ctx.getTitleOptions());
+            } else if (article.getTitleOptions() != null) {
+                snap.put("titleOptions", JsonExtractUtil.parseList(article.getTitleOptions(), TitleOption.class));
+            }
+            // 大纲：优先内存，兜底数据库
+            if (ctx != null && ctx.getOutline() != null && !ctx.getOutline().isEmpty()) {
+                snap.put("outline", ctx.getOutline());
+            } else if (article.getOutline() != null) {
+                snap.put("outline", JsonExtractUtil.parseList(article.getOutline(), OutlineItem.class));
+            }
+            // 大纲流式原文：仅内存有（用于 OUTLINE_GENERATING 阶段重连后续传）
+            if (ctx != null && ctx.getOutlineRaw().length() > 0) {
+                snap.put("outlineRaw", ctx.getOutlineRaw().toString());
+            }
+            // 正文：优先内存实时累积值（生成中场景），兜底数据库（CONTENT_CONFIRMING 及之后）
+            if (ctx != null && ctx.getContent().length() > 0) {
+                snap.put("content", ctx.getContent().toString());
+            } else if (article.getContent() != null) {
+                snap.put("content", article.getContent());
+            }
+            // 分段进度：仅内存有
+            if (ctx != null) {
+                snap.put("currentSectionIndex", ctx.getCurrentSectionIndex());
+                snap.put("completedSections", ctx.getCompletedSections());
+                snap.put("totalSections", ctx.getTotalSections());
+                List<String> sections = new ArrayList<>();
+                // synchronizedList 遍历时需要手动加同步，防止智能体线程并发 add 导致 CME
+                synchronized (ctx.getSectionContents()) {
+                    for (StringBuilder sb : ctx.getSectionContents()) {
+                        sections.add(sb.toString());
+                    }
+                }
+                snap.put("sectionContents", sections);
+                if (ctx.getImageRequirements() != null) {
+                    snap.put("totalImages", ctx.getImageRequirements().size());
+                }
+            }
+            // 配图列表：优先内存（IMAGE_GENERATING 实时进度），兜底数据库
+            if (ctx != null && ctx.getImages() != null && !ctx.getImages().isEmpty()) {
+                snap.put("images", ctx.getImages());
+            } else if (article.getImages() != null) {
+                snap.put("images", JsonExtractUtil.parseList(article.getImages(), ImageItem.class));
+            }
+            // 完整图文（COMPLETED 场景直接恢复成稿）
+            if (article.getFullContent() != null) {
+                snap.put("fullContent", article.getFullContent());
+            }
+            sseEmitterManager.send(taskId, SSEMessageTypeEnum.SNAPSHOT, snap);
+        } catch (Exception e) {
+            // 快照推送失败不影响主流程，前端还有 watchdog 兜底
+            log.warn("[{}] 推送任务快照失败: {}", taskId, e.getMessage());
+        }
     }
 
     /**

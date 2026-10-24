@@ -41,4 +41,11 @@ public interface ArticleTaskService {
      * AI 修改大纲（同步返回新大纲）
      */
     List<OutlineSection> aiModifyOutline(ArticleAiModifyOutlineRequest request, Long userId);
+
+    /**
+     * SSE 连接建立后立即推送一条任务快照（SNAPSHOT），
+     * 让前端在切换页面/刷新/断线重连后能恢复到当前阶段与已生成内容。
+     * 数据源：实时进度优先读内存上下文（ctx），落库字段兜底读 article 表。
+     */
+    void pushSnapshot(String taskId);
 }

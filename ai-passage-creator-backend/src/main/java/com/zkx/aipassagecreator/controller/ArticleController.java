@@ -154,6 +154,8 @@ public class ArticleController {
         emitter.onCompletion(() -> sseEmitterManager.remove(taskId));
         emitter.onTimeout(() -> sseEmitterManager.remove(taskId));
         emitter.onError(e -> sseEmitterManager.remove(taskId));
+        // 建立后立即补发任务快照：切页/刷新/断线重连场景下前端据此恢复到当前阶段
+        articleTaskService.pushSnapshot(taskId);
         return emitter;
     }
 
