@@ -112,7 +112,7 @@ defineEmits<{
 
   &:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1);
+    box-shadow: 0 0 0 3px rgba(31, 111, 84, 0.1);
   }
 }
 
@@ -124,7 +124,7 @@ defineEmits<{
   background: var(--gradient-primary) !important;
   border: none !important;
   color: white !important;
-  box-shadow: 0 4px 14px rgba(180, 83, 9, 0.3) !important;
+  box-shadow: 0 4px 14px rgba(31, 111, 84, 0.3) !important;
 
   &:hover,
   &:focus,
@@ -132,7 +132,7 @@ defineEmits<{
     background: var(--gradient-primary) !important;
     color: white !important;
     border: none !important;
-    box-shadow: 0 4px 14px rgba(180, 83, 9, 0.3) !important;
+    box-shadow: 0 4px 14px rgba(31, 111, 84, 0.3) !important;
     opacity: 0.92;
   }
 

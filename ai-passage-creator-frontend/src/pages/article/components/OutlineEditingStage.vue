@@ -1,8 +1,9 @@
 <template>
   <div class="outline-editing-stage">
     <div class="stage-header">
-      <h2 class="stage-title">编辑文章大纲</h2>
-      <p class="stage-subtitle">您可以编辑、调整章节顺序，或添加新章节</p>
+      <div class="stage-kicker">第 二 笔 · 起 稿</div>
+      <h2 class="stage-title">起稿 · 大纲逐级可改</h2>
+      <p class="stage-subtitle">每一行都可以直接修改、排序或增删，不满意整段可退回重跑。</p>
     </div>
 
     <div class="outline-list" ref="outlineListRef">
@@ -126,7 +127,7 @@
         <template #icon>
           <CheckOutlined />
         </template>
-        确认并生成正文
+        确认，进入落笔 →
       </a-button>
     </div>
   </div>
@@ -281,44 +282,53 @@ const handleAiModify = async () => {
 .outline-editing-stage {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 6px 0 10px;
 }
 
 .stage-header {
-  text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 28px;
+}
+
+.stage-kicker {
+  font-family: var(--kai);
+  color: var(--gold);
+  font-size: 14px;
+  letter-spacing: 0.24em;
+  margin-bottom: 6px;
 }
 
 .stage-title {
+  font-family: var(--kai);
   font-size: 28px;
   font-weight: 700;
-  margin: 0 0 12px;
-  color: var(--color-text);
+  margin: 0 0 8px;
+  color: var(--ink);
 }
 
 .stage-subtitle {
-  font-size: 15px;
-  color: var(--color-text-secondary);
+  font-size: 14px;
+  color: var(--ink-2);
   margin: 0;
 }
 
 .outline-list {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  margin-bottom: 32px;
+  gap: 20px;
+  margin-bottom: 28px;
 }
 
+/* 章节卡：宣纸底 + 发丝边，hover 描金 */
 .outline-section {
-  background: var(--color-background-secondary);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-lg);
+  background: var(--paper);
+  border: 1.5px solid var(--hairline);
+  border-radius: 12px;
   padding: 20px;
-  transition: all 0.2s;
+  transition: all 0.3s var(--ease);
 
   &:hover {
-    border-color: var(--color-primary);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border-color: var(--gold);
+    box-shadow: 0 4px 12px rgba(38, 34, 28, 0.06);
   }
 }
 
@@ -332,7 +342,7 @@ const handleAiModify = async () => {
 .drag-handle {
   cursor: grab;
   font-size: 20px;
-  color: var(--color-text-muted);
+  color: var(--ink-3);
   user-select: none;
   line-height: 1;
 
@@ -341,22 +351,26 @@ const handleAiModify = async () => {
   }
 
   &:hover {
-    color: var(--color-primary);
+    color: var(--vermilion);
   }
 }
 
+/* 章节序号：朱砂印章式圆标 */
 .section-number {
   display: flex;
   align-items: center;
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 50%;
-  background: var(--color-primary);
-  color: white;
-  font-weight: 600;
+  border-radius: 8px;
+  background: var(--vermilion);
+  color: #FBF6EC;
+  font-family: var(--kai);
+  font-weight: 700;
   font-size: 14px;
   flex-shrink: 0;
+  transform: rotate(4deg);
+  box-shadow: inset 0 0 0 2px rgba(251, 246, 236, 0.3);
 }
 
 .section-title-input {
@@ -383,7 +397,7 @@ const handleAiModify = async () => {
 }
 
 .point-bullet {
-  color: var(--color-primary);
+  color: var(--gold);
   font-size: 20px;
   line-height: 1;
   flex-shrink: 0;
@@ -396,14 +410,14 @@ const handleAiModify = async () => {
 
 .delete-point-btn {
   font-size: 18px;
-  color: var(--color-text-muted);
+  color: var(--ink-3);
   padding: 0;
   width: 24px;
   height: 24px;
   flex-shrink: 0;
 
   &:hover {
-    color: #ff4d4f;
+    color: var(--vermilion);
   }
 }
 
@@ -411,16 +425,16 @@ const handleAiModify = async () => {
   align-self: flex-start;
 }
 
+/* AI 助手区：虚线描金框 */
 .ai-chat-section {
-  background: linear-gradient(135deg, rgba(180, 83, 9, 0.05) 0%, rgba(180, 83, 9, 0.02) 100%);
-  border: 2px dashed var(--color-primary);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  margin-bottom: 32px;
+  background: var(--paper);
+  border: 1.5px dashed var(--gold);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 28px;
 
   &.vip-only {
-    background: linear-gradient(135deg, rgba(180, 83, 9, 0.05) 0%, rgba(22, 163, 74, 0.02) 100%);
-    border-color: var(--color-primary);
+    border-color: var(--hairline);
   }
 }
 
@@ -428,9 +442,10 @@ const handleAiModify = async () => {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-family: var(--kai);
   font-size: 16px;
-  font-weight: 600;
-  color: var(--color-primary);
+  font-weight: 700;
+  color: var(--gold);
   margin-bottom: 16px;
 
   .anticon {
@@ -441,29 +456,30 @@ const handleAiModify = async () => {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 3px 8px;
+    padding: 3px 10px;
     border-radius: var(--radius-full);
     font-size: 11px;
     font-weight: 600;
-    background: var(--gradient-primary);
-    color: white;
+    background: var(--vermilion);
+    color: #FBF6EC;
     margin-left: auto;
+    font-family: var(--font-body);
   }
 }
 
 .vip-upgrade-notice {
   text-align: center;
-  padding: 20px;
+  padding: 16px;
 
   .vip-icon {
-    font-size: 48px;
-    color: var(--color-primary);
+    font-size: 44px;
+    color: var(--gold);
     margin-bottom: 12px;
   }
 
   p {
     margin: 0 0 16px;
-    color: var(--color-text-secondary);
+    color: var(--ink-2);
     font-size: 14px;
   }
 
@@ -472,19 +488,20 @@ const handleAiModify = async () => {
     align-items: center;
     justify-content: center;
     padding: 10px 24px;
-    border-radius: var(--radius-md);
+    border-radius: 999px;
     font-size: 14px;
-    font-weight: 600;
-    background: var(--gradient-primary);
-    color: white;
+    font-weight: 700;
+    background: var(--vermilion);
+    color: #FBF6EC;
     text-decoration: none;
-    transition: all 0.3s;
-    box-shadow: var(--shadow-green);
+    transition: all 0.3s var(--ease);
+    box-shadow: 0 4px 0 var(--vermilion-dark);
 
     &:hover {
+      background: var(--vermilion-dark);
       transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(180, 83, 9, 0.35);
-      color: white;
+      box-shadow: 0 6px 0 var(--vermilion-dark);
+      color: #FBF6EC;
     }
   }
 }
@@ -511,7 +528,7 @@ const handleAiModify = async () => {
 
 .actions {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   gap: 16px;
 }
 
@@ -519,27 +536,31 @@ const handleAiModify = async () => {
 .confirm-btn {
   height: 48px;
   padding: 0 32px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  border-radius: var(--radius-lg);
+  border-radius: 999px;
 }
 
+/* 确认按钮：朱砂 + 按压感 */
 .confirm-btn {
-  background: var(--gradient-primary) !important;
+  font-family: var(--kai);
+  letter-spacing: 0.1em;
+  background: var(--vermilion) !important;
   border: none !important;
-  color: white !important;
-  box-shadow: 0 4px 14px rgba(180, 83, 9, 0.3) !important;
+  color: #FBF6EC !important;
+  box-shadow: 0 4px 0 var(--vermilion-dark) !important;
+  transition: all 0.3s var(--ease) !important;
 
   &:hover:not(:disabled) {
-    opacity: 0.92;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(180, 83, 9, 0.4) !important;
+    background: var(--vermilion-dark) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--vermilion-dark) !important;
   }
 
   &:disabled {
     background: var(--color-border) !important;
     box-shadow: none !important;
-    opacity: 0.6;
+    color: var(--ink-3) !important;
   }
 }
 </style>

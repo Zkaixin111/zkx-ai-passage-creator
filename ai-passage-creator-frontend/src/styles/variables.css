@@ -1,74 +1,113 @@
 /**
- * CSS 变量定义 - 清新绿色配色方案
+ * CSS 变量定义 —— 神笔马良 · 动漫画风
+ * 色板：宣纸底 + 墨色文字 + 朱砂强调 + 描金点缀 + 黛绿成功态
  */
 
-/* 引入 Google Fonts - Geometric Modern */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Work+Sans:wght@300;400;500;600;700&display=swap');
-
 :root {
-  /* 品牌色 - 绿色系 */
-  --color-primary: #B45309;
-  --color-primary-light: #D97757;
-  --color-primary-dark: #92400E;
-  --color-secondary: #0F172A;
-  --color-secondary-light: #334155;
+  /* ==================== 神笔令牌 ==================== */
+  /* 宣纸背景 */
+  --paper: #F7F1E5;
+  --paper-2: #F1E8D6;
+  --paper-card: #FFFDF7;
+
+  /* 墨色文字阶 */
+  --ink: #26221C;
+  --ink-2: #6B6353;
+  --ink-3: #9A9080;
+
+  /* 朱砂（主强调）/ 描金 / 黛绿（成功态） */
+  --vermilion: #C4402F;
+  --vermilion-dark: #A83325;
+  --gold: #C08A3E;
+  --jade: #3D6B5C;
+
+  /* 发丝分隔线 */
+  --hairline: #E0D5BE;
+
+  /* 字体栈：楷体（标题/印章，系统栈零下载）/ 正文无衬线 / 数字日志等宽 */
+  --kai: "Kaiti SC", "STKaiti", "KaiTi", "Noto Serif SC", "SimSun", serif;
+
+  /* 硬阴影与按压感（神笔专属质感） */
+  --shadow-hard: 4px 4px 0 rgba(38, 34, 28, 0.1);
+  --shadow-hard-sm: 3px 3px 0 rgba(38, 34, 28, 0.1);
+  --shadow-brush-btn: 0 4px 0 var(--vermilion-dark);
+
+  /* ==================== 旧令牌名保留（值改为朱砂系，避免内部页断链） ==================== */
+  /* 品牌色 - 朱砂 */
+  --color-primary: #C4402F;
+  --color-primary-light: #D0563F;
+  --color-primary-dark: #A83325;
+  --color-secondary: #26221C;
+  --color-secondary-light: #6B6353;
 
   /* 功能色 */
-  --color-cta: #B45309;
-  --color-success: #B45309;
-  --color-warning: #EAB308;
-  --color-error: #EF4444;
-  --color-info: #3B82F6;
+  --color-cta: #C4402F;
+  --color-success: #3D6B5C;
+  --color-warning: #C08A3E;
+  --color-error: #B42318;
+  --color-info: #3D6B5C;
 
-  /* 中性色 */
-  --color-background: #FFFFFF;
-  --color-background-secondary: #F8FAFC;
-  --color-background-tertiary: #F1F5F9;
-  --color-background-dark: #0F172A;
-  --color-text: #0F172A;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94A3B8;
-  --color-border: #E2E8F0;
-  --color-border-light: #F1F5F9;
+  /* 中性色（宣纸底，禁纯白整页与纯黑文字） */
+  --color-background: #F7F1E5;
+  --color-background-secondary: #F1E8D6;
+  --color-background-tertiary: #EAE0C9;
+  --color-background-dark: #26221C;
+  --color-text: #26221C;
+  --color-text-secondary: #6B6353;
+  --color-text-muted: #9A9080;
+  --color-border: #E0D5BE;
+  --color-border-light: #EAE0C9;
 
-  /* 渐变 */
-  --gradient-primary: linear-gradient(135deg, #B45309 0%, #92400E 100%);
-  --gradient-hero: linear-gradient(180deg, #FDF6EF 0%, #FFFFFF 100%);
-  --gradient-hero-dark: linear-gradient(180deg, #78350F 0%, #451A03 100%);
+  /* 渐变（仅保留极淡单向渐变） */
+  --gradient-primary: linear-gradient(180deg, #C4402F 0%, #A83325 100%);
+  --gradient-hero: linear-gradient(180deg, #F7F1E5 0%, #F1E8D6 100%);
+  --gradient-hero-dark: linear-gradient(180deg, #26221C 0%, #332D24 100%);
+  --gradient-text: none;
+  --gradient-glow: none;
 
   /* 纯色背景 */
-  --bg-primary: #B45309;
-  --bg-primary-hover: #92400E;
-  --bg-dark: #0F172A;
-  --bg-dark-hover: #1E293B;
-  --bg-success: #B45309;
+  --bg-primary: #C4402F;
+  --bg-primary-hover: #A83325;
+  --bg-dark: #26221C;
+  --bg-dark-hover: #332D24;
+  --bg-success: #3D6B5C;
 
-  /* 阴影 */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-card-hover: 0 8px 24px rgba(180, 83, 9, 0.15);
-  --shadow-green: 0 4px 14px rgba(180, 83, 9, 0.25);
+  /* 阴影（带墨色调） */
+  --shadow-sm: 0 1px 2px 0 rgba(38, 34, 28, 0.06);
+  --shadow-md: 0 1px 3px rgba(38, 34, 28, 0.08);
+  --shadow-lg: 0 2px 8px rgba(38, 34, 28, 0.08);
+  --shadow-xl: 0 4px 16px rgba(38, 34, 28, 0.1);
+  --shadow-card: 0 2px 10px rgba(38, 34, 28, 0.05);
+  --shadow-card-hover: 0 14px 32px rgba(38, 34, 28, 0.1);
+  --shadow-green: 0 1px 3px rgba(61, 107, 92, 0.2);
+  --shadow-glow: 0 1px 3px rgba(38, 34, 28, 0.06);
 
   /* 圆角 */
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 24px;
+  --radius-xl: 14px;
+  --radius-2xl: 16px;
   --radius-full: 9999px;
 
-  /* 过渡 */
-  --transition-fast: 150ms ease-out;
-  --transition-normal: 200ms ease-out;
-  --transition-slow: 300ms ease-out;
+  /* 过渡（统一缓动曲线） */
+  --ease-editorial: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: 250ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 400ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-bounce: 300ms cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* 毛玻璃 */
-  --glass-bg: rgba(255, 255, 255, 0.9);
-  --glass-bg-green: rgba(220, 252, 231, 0.8);
-  --glass-blur: blur(12px);
+  /* 毛玻璃（宣纸玻璃底） */
+  --glass-bg: rgba(247, 241, 229, 0.88);
+  --glass-bg-green: rgba(241, 232, 214, 0.9);
+  --glass-blur: blur(10px);
+  --glass-border: 1px solid var(--hairline);
+
+  /* 字体栈：显示层楷体 / 正文无衬线 / 数字与代码等宽（纯系统栈，不下载 webfont） */
+  --font-display: "Kaiti SC", "STKaiti", "KaiTi", "Noto Serif SC", "SimSun", serif;
+  --font-body: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Consolas, monospace;
 
   /* 响应式断点（用于 JS 读取） */
   --breakpoint-sm: 640px;

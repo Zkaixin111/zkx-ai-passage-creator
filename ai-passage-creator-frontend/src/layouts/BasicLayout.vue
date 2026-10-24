@@ -1,7 +1,5 @@
 <template>
   <a-layout class="basic-layout">
-    <!-- 全局背景光晕氛围 -->
-    <div class="ambient-glow" aria-hidden="true"></div>
     <!-- 顶部导航栏 -->
     <GlobalHeader />
     <!-- 主要内容区域 -->
@@ -23,19 +21,6 @@ import GlobalFooter from '@/components/GlobalFooter.vue'
   background: none;
   position: relative;
   min-height: 100vh;
-}
-
-/* 全局背景光晕（固定层，不干扰滚动） */
-.ambient-glow {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: var(--gradient-glow);
-  opacity: 0.6;
 }
 
 .main-content {

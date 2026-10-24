@@ -1,43 +1,25 @@
 <template>
   <div id="userLoginPage">
     <div class="auth-container">
-      <!-- 左侧品牌区域 -->
-      <div class="brand-section">
-        <div class="brand-bg"></div>
-        <div class="brand-content">
-          <div class="brand-logo">
-            <img src="@/assets/logo.png" alt="Logo" class="logo-img" />
-          </div>
-          <h1 class="brand-title">协笔 CoWrite</h1>
-          <p class="brand-subtitle">生成、确认、再生成 —— 每一步都由你掌控</p>
-          <div class="brand-features">
-            <div class="feature-item">
-              <CheckCircleOutlined class="feature-check" />
-              <span>标题、大纲由你确认，AI 全力辅助</span>
-            </div>
-            <div class="feature-item">
-              <CheckCircleOutlined class="feature-check" />
-              <span>流式生成正文，进度实时可见</span>
-            </div>
-            <div class="feature-item">
-              <CheckCircleOutlined class="feature-check" />
-              <span>多策略配图，图文一键成稿</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      
+      <!-- 左侧品牌面板（登录注册共用组件，传入登录标语与亮点） -->
+      <AuthBrandSection
+        title-top="写什么，"
+        title-em="活"
+        title-bottom="什么"
+        :points="brandPoints"
+      />
+
       <!-- 右侧表单区域 -->
       <div class="form-section">
-        <div class="form-card">
-          <h2 class="form-title">欢迎回来</h2>
-          <p class="form-subtitle">登录您的账号继续创作</p>
-          
+        <div class="form-box">
+          <h1 class="form-title">欢迎回来</h1>
+          <p class="form-subtitle">笔已蘸好墨，就等你签到了。</p>
+
           <a-form :model="formState" name="basic" autocomplete="off" @finish="handleSubmit" class="login-form">
             <a-form-item name="userAccount" :rules="[{ required: true, message: '请输入账号' }]">
-              <a-input 
-                v-model:value="formState.userAccount" 
-                placeholder="请输入账号" 
+              <a-input
+                v-model:value="formState.userAccount"
+                placeholder="你的账号"
                 size="large"
                 class="form-input"
               >
@@ -53,9 +35,9 @@
                 { min: 8, message: '密码长度不能小于 8 位' },
               ]"
             >
-              <a-input-password 
-                v-model:value="formState.userPassword" 
-                placeholder="请输入密码" 
+              <a-input-password
+                v-model:value="formState.userPassword"
+                placeholder="请输入密码"
                 size="large"
                 class="form-input"
               >
@@ -64,18 +46,22 @@
                 </template>
               </a-input-password>
             </a-form-item>
-            
+
             <a-form-item>
               <a-button type="primary" html-type="submit" size="large" block class="submit-btn">
-                登录
+                执 笔 登 录
               </a-button>
             </a-form-item>
+
+            <!-- 注册入口：次级按钮，显眼 -->
+            <a-form-item class="register-item">
+              <RouterLink to="/user/register" class="register-link">
+                <a-button size="large" block class="register-btn">还 没 有 神 笔 ？ 免 费 开 笔</a-button>
+              </RouterLink>
+            </a-form-item>
           </a-form>
-          
-          <div class="form-footer">
-            <span class="footer-text">还没有账号？</span>
-            <RouterLink to="/user/register" class="register-link">立即注册</RouterLink>
-          </div>
+
+          <p class="decor">研 墨 · 起 稿 · 落 笔 · 点 睛</p>
         </div>
       </div>
     </div>
@@ -88,7 +74,8 @@ import { userLogin } from '@/api/userController.ts'
 import { useLoginUserStore } from '@/stores/loginUser.ts'
 import { useRouter, useRoute } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { UserOutlined, LockOutlined, CheckCircleOutlined } from '@ant-design/icons-vue'
+import { UserOutlined, LockOutlined } from '@ant-design/icons-vue'
+import AuthBrandSection from '@/components/AuthBrandSection.vue'
 
 const formState = reactive<API.UserLoginRequest>({
   userAccount: '',
@@ -98,6 +85,13 @@ const formState = reactive<API.UserLoginRequest>({
 const router = useRouter()
 const route = useRoute()
 const loginUserStore = useLoginUserStore()
+
+// 左侧品牌面板三条亮点（真实产品能力）
+const brandPoints = [
+  '六步智能体，替你研墨铺纸',
+  '每一笔落下之前，都等你点头',
+  '从此没有空白页',
+]
 
 /**
  * 提交表单
@@ -123,249 +117,195 @@ const handleSubmit = async (values: API.UserLoginRequest) => {
 
 <style scoped>
 #userLoginPage {
-  min-height: calc(100vh - 64px);
-  background: var(--color-background-secondary);
+  min-height: calc(100vh - 68px);
+  background: var(--paper);
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 0;
 }
 
+/* 左右分栏：左 46% 品牌面板 + 右 54% 表单 */
 .auth-container {
-  display: flex;
+  display: grid;
+  grid-template-columns: 46% 54%;
   width: 100%;
-  max-width: 900px;
-  min-height: 520px;
-  background: white;
-  border-radius: var(--radius-2xl);
-  overflow: hidden;
-  box-shadow: var(--shadow-xl);
+  min-height: 640px;
 }
 
-/* 左侧品牌区域 */
-.brand-section {
-  flex: 1;
-  padding: 48px 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.brand-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, #B45309 0%, #92400E 50%, #78350F 100%);
-}
-
-.brand-bg::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-  animation: pulse-bg 8s ease-in-out infinite;
-}
-
-@keyframes pulse-bg {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 0.3; }
-}
-
-.brand-content {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  color: white;
-}
-
-.brand-logo {
-  margin-bottom: 24px;
-}
-
-.logo-img {
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: var(--radius-xl);
-  padding: 8px;
-}
-
-.brand-title {
-  font-size: 26px;
-  font-weight: 700;
-  margin: 0 0 10px;
-  letter-spacing: -0.5px;
-}
-
-.brand-subtitle {
-  font-size: 15px;
-  opacity: 0.9;
-  margin: 0 0 36px;
-}
-
-.brand-features {
-  text-align: left;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-lg);
-  padding: 20px 24px;
-  backdrop-filter: blur(8px);
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-  font-size: 14px;
-}
-
-.feature-item:last-child {
-  margin-bottom: 0;
-}
-
-.feature-check {
-  font-size: 18px;
-  color: white;
-}
-
-/* 右侧表单区域 */
 .form-section {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 40px;
-  background: white;
+  padding: 60px 40px;
+  background: var(--paper);
 }
 
-.form-card {
+.form-box {
   width: 100%;
-  max-width: 320px;
+  max-width: 420px;
 }
 
 .form-title {
-  font-size: 26px;
+  font-family: var(--kai);
+  font-size: 34px;
   font-weight: 700;
-  color: var(--color-text);
-  margin: 0 0 6px;
-  letter-spacing: -0.5px;
+  margin: 0 0 8px;
+  color: var(--ink);
 }
 
 .form-subtitle {
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  margin: 0 0 32px;
+  color: var(--ink-2);
+  font-size: 14.5px;
+  margin: 0 0 36px;
 }
 
 .login-form {
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 
+/* 输入框：卡片底 + 1.5px 墨边 + 硬阴影 */
 .form-input {
-  border-radius: var(--radius-lg);
-  border-color: var(--color-border);
-  transition: all var(--transition-fast);
+  border-radius: 12px;
 }
 
-.form-input:hover {
-  border-color: var(--color-primary-light);
+.form-input :deep(.ant-input),
+.form-input :deep(.ant-input-affix-wrapper) {
+  background: var(--paper-card);
+  border: 1.5px solid var(--ink);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 15px;
+  color: var(--ink);
+  box-shadow: var(--shadow-hard-sm);
+  transition: all 0.3s var(--ease);
 }
 
-.form-input:focus,
-.form-input:focus-within {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1);
+.form-input :deep(.ant-input-affix-wrapper) {
+  padding: 8px 16px;
 }
 
-.form-input :deep(.ant-input) {
-  padding: 12px 14px;
+.form-input :deep(.ant-input::placeholder) {
+  color: var(--ink-3);
+}
+
+.form-input :deep(.ant-input-affix-wrapper:hover) {
+  border-color: var(--ink);
+}
+
+.form-input :deep(.ant-input-affix-wrapper-focused),
+.form-input :deep(.ant-input-affix-wrapper:focus-within) {
+  border-color: var(--vermilion);
+  box-shadow: 3px 3px 0 rgba(196, 64, 47, 0.3);
+  transform: translate(-1px, -1px);
 }
 
 .input-icon {
-  color: var(--color-text-muted);
+  color: var(--ink-3);
   font-size: 16px;
 }
 
+/* 浏览器自动填充覆盖：Chrome 会把 autofill 输入框染成淡蓝色，强制回到宣纸卡底色 */
+.form-input :deep(.ant-input:-webkit-autofill),
+.form-input :deep(.ant-input:-webkit-autofill:hover),
+.form-input :deep(.ant-input:-webkit-autofill:focus) {
+  -webkit-box-shadow: 0 0 0 1000px #fffdf7 inset;
+  -webkit-text-fill-color: var(--ink);
+  caret-color: var(--ink);
+  border-radius: 12px;
+  transition: background-color 99999s ease-in-out 0s;
+}
+
+/* 注册次级按钮：墨色描边胶囊，与朱砂主按钮形成层级 */
+.register-item {
+  margin-bottom: 6px !important;
+}
+
+.register-btn {
+  height: 46px;
+  font-family: var(--kai);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  border-radius: 12px !important;
+  background: transparent !important;
+  border: 1.5px solid var(--ink) !important;
+  color: var(--ink) !important;
+  box-shadow: none !important;
+  transition: all 0.3s var(--ease) !important;
+}
+
+.register-btn:hover {
+  background: var(--ink) !important;
+  color: var(--paper) !important;
+  transform: translateY(-1px);
+}
+
+/* 朱砂提交按钮：楷体 + 按压感 */
 .submit-btn {
-  height: 48px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: var(--radius-lg);
-  background: var(--gradient-primary) !important;
+  height: 50px;
+  font-family: var(--kai);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  border-radius: 12px !important;
+  background: var(--vermilion) !important;
   border: none !important;
-  color: white !important;
-  box-shadow: var(--shadow-green) !important;
-  transition: opacity var(--transition-normal) !important;
+  color: #FBF6EC !important;
+  box-shadow: 0 4px 0 var(--vermilion-dark) !important;
+  transition: all 0.3s var(--ease) !important;
 }
 
 .submit-btn:hover,
-.submit-btn:focus,
+.submit-btn:focus {
+  background: var(--vermilion-dark) !important;
+  color: #FBF6EC !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--vermilion-dark) !important;
+}
+
 .submit-btn:active {
-  background: var(--gradient-primary) !important;
-  border: none !important;
-  color: white !important;
-  box-shadow: var(--shadow-green) !important;
-  opacity: 0.92;
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--vermilion-dark) !important;
 }
 
 .submit-btn :deep(.ant-wave) {
   display: none;
 }
 
-.form-footer {
+/* 切换链接与底部装饰 */
+.switch {
+  margin-top: 26px;
   text-align: center;
-}
-
-.footer-text {
-  color: var(--color-text-secondary);
   font-size: 14px;
+  color: var(--ink-2);
 }
 
-.register-link {
-  color: var(--color-primary);
+.switch-link {
+  color: var(--vermilion);
+  text-decoration: none;
   font-weight: 600;
-  margin-left: 4px;
-  transition: color var(--transition-fast);
 }
 
-.register-link:hover {
-  color: var(--color-primary-dark);
+.switch-link:hover {
+  color: var(--vermilion-dark);
 }
 
-/* 响应式 */
-@media (max-width: 768px) {
+.decor {
+  margin-top: 44px;
+  padding-top: 24px;
+  border-top: 1px dashed var(--hairline);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.14em;
+}
+
+/* 响应式：窄屏隐藏品牌面板 */
+@media (max-width: 860px) {
   .auth-container {
-    flex-direction: column;
-    min-height: auto;
-    border-radius: var(--radius-xl);
-  }
-  
-  .brand-section {
-    padding: 32px 24px;
-  }
-  
-  .brand-title {
-    font-size: 22px;
-  }
-  
-  .brand-features {
-    display: none;
-  }
-  
-  .form-section {
-    padding: 32px 24px;
-  }
-
-  .form-title {
-    font-size: 22px;
+    grid-template-columns: 1fr;
   }
 }
 </style>

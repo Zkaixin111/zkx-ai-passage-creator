@@ -86,7 +86,7 @@
               </a-tooltip>
             </template>
             <template v-else-if="column.dataIndex === 'userRole'">
-              <a-tag v-if="record.userRole === 'admin'" color="purple" class="role-tag">
+              <a-tag v-if="record.userRole === 'admin'" color="green" class="role-tag">
                 管理员
               </a-tag>
               <a-tag v-else color="blue" class="role-tag">
@@ -551,7 +551,7 @@ onMounted(() => {
     }
 
     :deep(.ant-table-tbody > tr:hover > td) {
-      background: rgba(180, 83, 9, 0.02);
+      background: rgba(31, 111, 84, 0.02);
     }
 
     :deep(.ant-table-pagination) {
@@ -582,7 +582,7 @@ onMounted(() => {
     padding: 0 6px;
     font-size: 11px;
     color: var(--color-primary-dark);
-    background: rgba(180, 83, 9, 0.1);
+    background: rgba(31, 111, 84, 0.1);
     border-radius: var(--radius-sm);
   }
 

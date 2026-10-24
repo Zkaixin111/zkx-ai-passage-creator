@@ -1,43 +1,25 @@
 <template>
   <div id="userRegisterPage">
     <div class="auth-container">
-      <!-- 左侧品牌区域 -->
-      <div class="brand-section">
-        <div class="brand-bg"></div>
-        <div class="brand-content">
-          <div class="brand-logo">
-            <img src="@/assets/logo.png" alt="Logo" class="logo-img" />
-          </div>
-          <h1 class="brand-title">协笔 CoWrite</h1>
-          <p class="brand-subtitle">生成、确认、再生成 —— 每一步都由你掌控</p>
-          <div class="brand-features">
-            <div class="feature-item">
-              <CheckCircleOutlined class="feature-check" />
-              <span>标题、大纲由你确认，AI 全力辅助</span>
-            </div>
-            <div class="feature-item">
-              <CheckCircleOutlined class="feature-check" />
-              <span>流式生成正文，进度实时可见</span>
-            </div>
-            <div class="feature-item">
-              <CheckCircleOutlined class="feature-check" />
-              <span>多策略配图，图文一键成稿</span>
-            </div>
-          </div>
-        </div>
-      </div>
-      
+      <!-- 左侧品牌面板（登录注册共用组件，传入注册标语与真实权益亮点） -->
+      <AuthBrandSection
+        title-top="新笔开锋，"
+        title-em="赠"
+        title-bottom="你三篇"
+        :points="brandPoints"
+      />
+
       <!-- 右侧表单区域 -->
       <div class="form-section">
-        <div class="form-card">
-          <h2 class="form-title">创建账号</h2>
-          <p class="form-subtitle">注册开启您的 AI 创作之旅</p>
-          
+        <div class="form-box">
+          <h1 class="form-title">开笔</h1>
+          <p class="form-subtitle">取个笔名，神笔即刻开锋。</p>
+
           <a-form :model="formState" name="basic" autocomplete="off" @finish="handleSubmit" class="register-form">
             <a-form-item name="userAccount" :rules="[{ required: true, message: '请输入账号' }]">
-              <a-input 
-                v-model:value="formState.userAccount" 
-                placeholder="请输入账号" 
+              <a-input
+                v-model:value="formState.userAccount"
+                placeholder="登录用账号"
                 size="large"
                 class="form-input"
               >
@@ -53,9 +35,9 @@
                 { min: 8, message: '密码不能小于 8 位' },
               ]"
             >
-              <a-input-password 
-                v-model:value="formState.userPassword" 
-                placeholder="请输入密码" 
+              <a-input-password
+                v-model:value="formState.userPassword"
+                placeholder="至少 8 位，含字母与数字"
                 size="large"
                 class="form-input"
               >
@@ -72,9 +54,9 @@
                 { validator: validateCheckPassword },
               ]"
             >
-              <a-input-password 
-                v-model:value="formState.checkPassword" 
-                placeholder="请确认密码" 
+              <a-input-password
+                v-model:value="formState.checkPassword"
+                placeholder="再输一遍确认密码"
                 size="large"
                 class="form-input"
               >
@@ -83,18 +65,27 @@
                 </template>
               </a-input-password>
             </a-form-item>
-            
+
+            <!-- 协议勾选 + AI 辅助提示（本次改造新增的展示项） -->
+            <a-form-item name="agree" :rules="[{ validator: validateAgree }]">
+              <a-checkbox v-model:checked="agreed" class="agree-checkbox">
+                我已阅读并同意
+                <span class="agree-link">《用户协议》</span>
+                与
+                <span class="agree-link">《隐私政策》</span>
+                ，知悉生成内容由 AI 辅助完成。
+              </a-checkbox>
+            </a-form-item>
+
             <a-form-item>
               <a-button type="primary" html-type="submit" size="large" block class="submit-btn">
-                注册
+                开 笔
               </a-button>
             </a-form-item>
           </a-form>
-          
-          <div class="form-footer">
-            <span class="footer-text">已有账号？</span>
-            <RouterLink to="/user/login" class="login-link">立即登录</RouterLink>
-          </div>
+
+          <p class="switch">已有神笔？<RouterLink to="/user/login" class="switch-link">去登录 →</RouterLink></p>
+          <p class="decor">新 笔 开 锋 · 落 笔 生 花</p>
         </div>
       </div>
     </div>
@@ -105,8 +96,10 @@
 import { useRouter } from 'vue-router'
 import { userRegister } from '@/api/userController.ts'
 import { message } from 'ant-design-vue'
-import { reactive } from 'vue'
-import { UserOutlined, LockOutlined, SafetyOutlined, CheckCircleOutlined } from '@ant-design/icons-vue'
+import { reactive, ref } from 'vue'
+import { UserOutlined, LockOutlined, SafetyOutlined } from '@ant-design/icons-vue'
+import { DEFAULT_QUOTA } from '@/constants/user'
+import AuthBrandSection from '@/components/AuthBrandSection.vue'
 
 const router = useRouter()
 
@@ -115,6 +108,24 @@ const formState = reactive<API.UserRegisterRequest>({
   userPassword: '',
   checkPassword: '',
 })
+
+// 协议勾选（未勾选不可提交，仅前端校验，不影响接口字段）
+const agreed = ref(false)
+
+const validateAgree = (_rule: unknown, value: boolean, callback: (error?: Error) => void) => {
+  if (!agreed.value) {
+    callback(new Error('请先阅读并同意用户协议与隐私政策'))
+  } else {
+    callback()
+  }
+}
+
+// 品牌面板亮点：以真实注册赠送额度（DEFAULT_QUOTA）为准生成文案
+const brandPoints = [
+  `注册即得 ${DEFAULT_QUOTA} 篇免费成稿额度`,
+  '全程可干预，写完能署名',
+  '三十秒开笔，不用学就会',
+]
 
 /**
  * 验证确认密码
@@ -151,249 +162,191 @@ const handleSubmit = async (values: API.UserRegisterRequest) => {
 
 <style scoped>
 #userRegisterPage {
-  min-height: calc(100vh - 64px);
-  background: var(--color-background-secondary);
+  min-height: calc(100vh - 68px);
+  background: var(--paper);
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  padding: 40px 20px;
+  padding: 0;
 }
 
+/* 左右分栏：左 46% 品牌面板 + 右 54% 表单 */
 .auth-container {
-  display: flex;
+  display: grid;
+  grid-template-columns: 46% 54%;
   width: 100%;
-  max-width: 900px;
-  min-height: 580px;
-  background: white;
-  border-radius: var(--radius-2xl);
-  overflow: hidden;
-  box-shadow: var(--shadow-xl);
+  min-height: 680px;
 }
 
-/* 左侧品牌区域 */
-.brand-section {
-  flex: 1;
-  padding: 48px 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.brand-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, #B45309 0%, #92400E 50%, #78350F 100%);
-}
-
-.brand-bg::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-  animation: pulse-bg 8s ease-in-out infinite;
-}
-
-@keyframes pulse-bg {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 0.3; }
-}
-
-.brand-content {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  color: white;
-}
-
-.brand-logo {
-  margin-bottom: 24px;
-}
-
-.logo-img {
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: var(--radius-xl);
-  padding: 8px;
-}
-
-.brand-title {
-  font-size: 26px;
-  font-weight: 700;
-  margin: 0 0 10px;
-  letter-spacing: -0.5px;
-}
-
-.brand-subtitle {
-  font-size: 15px;
-  opacity: 0.9;
-  margin: 0 0 36px;
-}
-
-.brand-features {
-  text-align: left;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-lg);
-  padding: 20px 24px;
-  backdrop-filter: blur(8px);
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-  font-size: 14px;
-}
-
-.feature-item:last-child {
-  margin-bottom: 0;
-}
-
-.feature-check {
-  font-size: 18px;
-  color: white;
-}
-
-/* 右侧表单区域 */
 .form-section {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 48px 40px;
-  background: white;
+  padding: 60px 40px;
+  background: var(--paper);
 }
 
-.form-card {
+.form-box {
   width: 100%;
-  max-width: 320px;
+  max-width: 420px;
 }
 
 .form-title {
-  font-size: 26px;
+  font-family: var(--kai);
+  font-size: 34px;
   font-weight: 700;
-  color: var(--color-text);
-  margin: 0 0 6px;
-  letter-spacing: -0.5px;
+  margin: 0 0 8px;
+  color: var(--ink);
 }
 
 .form-subtitle {
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  margin: 0 0 28px;
+  color: var(--ink-2);
+  font-size: 14.5px;
+  margin: 0 0 32px;
 }
 
 .register-form {
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 
+/* 输入框：卡片底 + 1.5px 墨边 + 硬阴影 */
 .form-input {
-  border-radius: var(--radius-lg);
-  border-color: var(--color-border);
-  transition: all var(--transition-fast);
+  border-radius: 12px;
 }
 
-.form-input:hover {
-  border-color: var(--color-primary-light);
+.form-input :deep(.ant-input),
+.form-input :deep(.ant-input-affix-wrapper) {
+  background: var(--paper-card);
+  border: 1.5px solid var(--ink);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 15px;
+  color: var(--ink);
+  box-shadow: var(--shadow-hard-sm);
+  transition: all 0.3s var(--ease);
 }
 
-.form-input:focus,
-.form-input:focus-within {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1);
+.form-input :deep(.ant-input-affix-wrapper) {
+  padding: 8px 16px;
 }
 
-.form-input :deep(.ant-input) {
-  padding: 12px 14px;
+.form-input :deep(.ant-input::placeholder) {
+  color: var(--ink-3);
+}
+
+.form-input :deep(.ant-input-affix-wrapper:hover) {
+  border-color: var(--ink);
+}
+
+.form-input :deep(.ant-input-affix-wrapper-focused),
+.form-input :deep(.ant-input-affix-wrapper:focus-within) {
+  border-color: var(--vermilion);
+  box-shadow: 3px 3px 0 rgba(196, 64, 47, 0.3);
+  transform: translate(-1px, -1px);
 }
 
 .input-icon {
-  color: var(--color-text-muted);
+  color: var(--ink-3);
   font-size: 16px;
 }
 
+/* 浏览器自动填充覆盖：Chrome 会把 autofill 输入框染成淡蓝色，强制回到宣纸卡底色 */
+.form-input :deep(.ant-input:-webkit-autofill),
+.form-input :deep(.ant-input:-webkit-autofill:hover),
+.form-input :deep(.ant-input:-webkit-autofill:focus) {
+  -webkit-box-shadow: 0 0 0 1000px #fffdf7 inset;
+  -webkit-text-fill-color: var(--ink);
+  caret-color: var(--ink);
+  border-radius: 12px;
+  transition: background-color 99999s ease-in-out 0s;
+}
+
+/* 协议勾选：朱砂 accent */
+.agree-checkbox {
+  font-size: 13px;
+  color: var(--ink-2);
+  white-space: normal;
+  line-height: 1.6;
+}
+
+.agree-checkbox :deep(.ant-checkbox-inner) {
+  border-color: var(--ink-2);
+}
+
+.agree-checkbox :deep(.ant-checkbox-checked .ant-checkbox-inner) {
+  background: var(--vermilion);
+  border-color: var(--vermilion);
+}
+
+.agree-link {
+  color: var(--vermilion);
+}
+
+/* 朱砂提交按钮：楷体 + 按压感 */
 .submit-btn {
-  height: 48px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: var(--radius-lg);
-  background: var(--gradient-primary) !important;
+  height: 50px;
+  font-family: var(--kai);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  border-radius: 12px !important;
+  background: var(--vermilion) !important;
   border: none !important;
-  color: white !important;
-  box-shadow: var(--shadow-green) !important;
-  transition: opacity var(--transition-normal) !important;
+  color: #FBF6EC !important;
+  box-shadow: 0 4px 0 var(--vermilion-dark) !important;
+  transition: all 0.3s var(--ease) !important;
 }
 
 .submit-btn:hover,
-.submit-btn:focus,
+.submit-btn:focus {
+  background: var(--vermilion-dark) !important;
+  color: #FBF6EC !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 var(--vermilion-dark) !important;
+}
+
 .submit-btn:active {
-  background: var(--gradient-primary) !important;
-  border: none !important;
-  color: white !important;
-  box-shadow: var(--shadow-green) !important;
-  opacity: 0.92;
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 var(--vermilion-dark) !important;
 }
 
 .submit-btn :deep(.ant-wave) {
   display: none;
 }
 
-.form-footer {
+/* 切换链接与底部装饰 */
+.switch {
+  margin-top: 26px;
   text-align: center;
-}
-
-.footer-text {
-  color: var(--color-text-secondary);
   font-size: 14px;
+  color: var(--ink-2);
 }
 
-.login-link {
-  color: var(--color-primary);
+.switch-link {
+  color: var(--vermilion);
+  text-decoration: none;
   font-weight: 600;
-  margin-left: 4px;
-  transition: color var(--transition-fast);
 }
 
-.login-link:hover {
-  color: var(--color-primary-dark);
+.switch-link:hover {
+  color: var(--vermilion-dark);
 }
 
-/* 响应式 */
-@media (max-width: 768px) {
+.decor {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px dashed var(--hairline);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.14em;
+}
+
+/* 响应式：窄屏隐藏品牌面板 */
+@media (max-width: 860px) {
   .auth-container {
-    flex-direction: column;
-    min-height: auto;
-    border-radius: var(--radius-xl);
-  }
-  
-  .brand-section {
-    padding: 32px 24px;
-  }
-  
-  .brand-title {
-    font-size: 22px;
-  }
-  
-  .brand-features {
-    display: none;
-  }
-  
-  .form-section {
-    padding: 32px 24px;
-  }
-
-  .form-title {
-    font-size: 22px;
+    grid-template-columns: 1fr;
   }
 }
 </style>

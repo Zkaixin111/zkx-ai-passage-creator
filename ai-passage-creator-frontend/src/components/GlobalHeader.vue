@@ -4,8 +4,12 @@
       <div class="header-left">
         <RouterLink to="/" class="logo-link">
           <div class="logo-wrapper">
-            <img src="@/assets/logo.png" alt="Logo" class="logo-img" />
-            <h1 class="site-title">协笔 CoWrite</h1>
+            <!-- 朱砂印章 logo：竖排「协笔」，纯 CSS 实现 -->
+            <div class="seal-logo shenbi-seal vertical">协笔</div>
+            <div class="site-title-block">
+              <h1 class="site-title">协笔</h1>
+              <span class="site-sub">COWRITE</span>
+            </div>
           </div>
         </RouterLink>
       </div>
@@ -90,6 +94,7 @@ import { isVip as checkIsVip } from '@/utils/permission'
 
 const loginUserStore = useLoginUserStore()
 const router = useRouter()
+
 // 当前选中菜单
 const selectedKeys = ref<string[]>(['/'])
 // 监听路由变化，更新当前选中菜单
@@ -158,31 +163,19 @@ const doLogout = async () => {
 </script>
 
 <style scoped>
+/* 全站浅色宣纸玻璃头（含首页：首页 Hero 也是宣纸风，无需暗色切换） */
 .header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: var(--glass-blur) saturate(180%);
-  -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
+  background: rgba(247, 241, 229, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   padding: 0;
-  height: 64px;
-  line-height: 64px;
-  border-bottom: 1px solid var(--color-border);
-  transition: all var(--transition-normal);
-  overflow: hidden;
-}
-
-/* 顶部渐变光条（品牌色） */
-.header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--gradient-primary);
-  opacity: 0.85;
+  height: 68px;
+  line-height: 68px;
+  border-bottom: 1px solid var(--hairline);
+  transition: background var(--transition-fast);
 }
 
 .header-container {
@@ -206,32 +199,45 @@ const doLogout = async () => {
 }
 
 .logo-link:hover {
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .logo-wrapper {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
-.logo-img {
-  width: 36px;
-  height: 36px;
-  object-fit: contain;
+/* 朱砂印章 logo：40px 方块 + 内描边 + 竖排二字 */
+.seal-logo {
+  width: 40px;
+  height: 40px;
+  font-size: 15px;
+  line-height: 1.15;
+}
+
+.site-title-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.2;
 }
 
 .site-title {
   margin: 0;
-  font-size: 17px;
+  font-family: var(--kai);
+  font-size: 20px;
   font-weight: 700;
-  color: var(--color-text);
+  color: var(--ink);
   white-space: nowrap;
-  letter-spacing: -0.3px;
-  background: var(--gradient-text);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  letter-spacing: 0.04em;
+}
+
+.site-sub {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.14em;
 }
 
 /* 导航菜单 */
@@ -247,15 +253,15 @@ const doLogout = async () => {
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  border-radius: var(--radius-md);
-  font-size: 14px;
+  border-radius: 10px;
+  font-size: 14.5px;
   font-weight: 500;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   transition: all var(--transition-fast);
   text-decoration: none;
 }
 
-/* 导航项底部滑动指示条 */
+/* 导航项底部指示条（实色朱砂） */
 .nav-item::after {
   content: '';
   position: absolute;
@@ -265,18 +271,19 @@ const doLogout = async () => {
   width: 60%;
   height: 2px;
   border-radius: var(--radius-full);
-  background: var(--gradient-primary);
-  transition: transform var(--transition-normal);
+  background: var(--vermilion);
+  transition: transform var(--transition-fast);
 }
 
 .nav-item:hover {
-  color: var(--color-text);
-  background: var(--color-background-secondary);
+  color: var(--vermilion);
+  background: rgba(255, 253, 247, 0.9);
 }
 
 .nav-item.active {
-  color: var(--color-primary-dark);
-  background: rgba(180, 83, 9, 0.1);
+  color: var(--vermilion);
+  background: rgba(196, 64, 47, 0.08);
+  font-weight: 600;
 }
 
 .nav-item.active::after {
@@ -296,7 +303,7 @@ const doLogout = async () => {
 
 .user-dropdown {
   cursor: pointer;
-  height: 64px;
+  height: 68px;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -307,17 +314,17 @@ const doLogout = async () => {
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   font-size: 13px;
   font-weight: 500;
   background: transparent;
-  color: var(--color-primary);
+  color: var(--vermilion);
   text-decoration: none;
   transition: all var(--transition-fast);
 
   &:hover {
-    background: rgba(180, 83, 9, 0.08);
-    color: var(--color-primary-dark);
+    background: rgba(196, 64, 47, 0.08);
+    color: var(--vermilion-dark);
   }
 
   .anticon {
@@ -332,12 +339,12 @@ const doLogout = async () => {
   padding: 6px 14px;
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-primary);
+  color: var(--gold);
   text-decoration: none;
   transition: all var(--transition-fast);
 
   &:hover {
-    color: var(--color-primary-dark);
+    color: var(--vermilion);
   }
 
   .anticon {
@@ -347,23 +354,23 @@ const doLogout = async () => {
 
 .user-info {
   padding: 6px 12px;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   transition: all var(--transition-fast);
   display: flex;
   align-items: center;
 }
 
 .user-info:hover {
-  background: var(--color-background-secondary);
+  background: rgba(255, 253, 247, 0.9);
 }
 
 .user-avatar {
-  border: 2px solid var(--color-border);
+  border: 2px solid var(--hairline);
 }
 
 .user-name {
   font-weight: 500;
-  color: var(--color-text);
+  color: var(--ink);
   font-size: 14px;
 }
 
@@ -372,28 +379,28 @@ const doLogout = async () => {
   align-items: center;
   justify-content: center;
   height: 38px;
-  padding: 0 24px;
-  border-radius: var(--radius-md);
+  padding: 0 22px;
+  border-radius: 999px;
   font-size: 14px;
-  font-weight: 600;
-  color: white;
-  background: var(--gradient-primary);
-  border: none;
-  box-shadow: var(--shadow-green);
-  transition: all var(--transition-normal);
+  font-weight: 500;
+  color: var(--ink);
+  background: transparent;
+  border: 1.5px solid var(--ink);
+  box-shadow: none;
+  transition: all var(--transition-fast);
   text-decoration: none;
 }
 
 .login-btn:hover {
-  color: white;
-  box-shadow: 0 6px 20px rgba(180, 83, 9, 0.35);
+  color: var(--paper);
+  background: var(--ink);
 }
 
 .dropdown-menu {
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   overflow: hidden;
   box-shadow: var(--shadow-lg);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--hairline);
 }
 
 .dropdown-item {
@@ -405,17 +412,17 @@ const doLogout = async () => {
 }
 
 .dropdown-item:hover {
-  background: var(--color-background-secondary);
+  background: var(--paper-2);
 }
 
 .vip-info-item {
-  color: var(--color-primary-dark);
-  background: rgba(180, 83, 9, 0.1);
+  color: var(--vermilion);
+  background: rgba(196, 64, 47, 0.08);
   font-weight: 600;
   cursor: default;
 
   &:hover {
-    background: rgba(180, 83, 9, 0.15);
+    background: rgba(196, 64, 47, 0.14);
   }
 }
 
@@ -425,7 +432,7 @@ const doLogout = async () => {
     padding: 0 16px;
   }
 
-  .site-title {
+  .site-title-block {
     display: none;
   }
 

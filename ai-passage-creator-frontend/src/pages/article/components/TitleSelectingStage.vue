@@ -1,10 +1,11 @@
 <template>
   <div class="title-selecting-stage">
     <div class="stage-header">
-      <h2 class="stage-title">选择标题方案</h2>
-      <p class="stage-subtitle">AI 为您生成了以下标题，请选择一个或自定义</p>
+      <div class="stage-kicker">第 一 笔 · 研 墨</div>
+      <h2 class="stage-title">研墨 · 挑一个标题</h2>
+      <p class="stage-subtitle">AI 为您生成了以下标题，选择一个或自己写，点头才往下走。</p>
     </div>
-    
+
     <a-radio-group v-model:value="selectedIndex" class="title-options">
       <div v-for="(option, index) in titleOptions" :key="index" class="title-option">
         <a-radio :value="index">
@@ -21,25 +22,25 @@
           </div>
         </a-radio>
         <div v-if="selectedIndex === -1" class="custom-inputs">
-          <a-input 
-            v-model:value="customMainTitle" 
-            placeholder="输入主标题" 
+          <a-input
+            v-model:value="customMainTitle"
+            placeholder="输入主标题"
             class="custom-input"
           />
-          <a-input 
-            v-model:value="customSubTitle" 
-            placeholder="输入副标题" 
+          <a-input
+            v-model:value="customSubTitle"
+            placeholder="输入副标题"
             class="custom-input"
           />
         </div>
       </div>
     </a-radio-group>
-    
+
     <div class="description-section">
       <label class="section-label">补充描述（可选）</label>
       <p class="section-tip">补充您对文章的期望、重点强调的内容等</p>
-      <a-textarea 
-        v-model:value="userDescription" 
+      <a-textarea
+        v-model:value="userDescription"
         placeholder="例如：请重点强调技术原理，用通俗的语言讲解..."
         :rows="4"
         :maxlength="500"
@@ -47,10 +48,10 @@
         class="description-textarea"
       />
     </div>
-    
+
     <div class="actions">
-      <a-button 
-        type="primary" 
+      <a-button
+        type="primary"
         size="large"
         :loading="loading"
         :disabled="!canConfirm"
@@ -60,7 +61,7 @@
         <template #icon>
           <CheckOutlined />
         </template>
-        确认并生成大纲
+        确认，进入起稿 →
       </a-button>
     </div>
   </div>
@@ -109,7 +110,7 @@ const canConfirm = computed(() => {
 const handleConfirm = () => {
   let mainTitle = ''
   let subTitle = ''
-  
+
   if (selectedIndex.value === -1) {
     mainTitle = customMainTitle.value
     subTitle = customSubTitle.value
@@ -118,7 +119,7 @@ const handleConfirm = () => {
     mainTitle = selected.mainTitle
     subTitle = selected.subTitle
   }
-  
+
   emit('confirm', {
     mainTitle,
     subTitle,
@@ -131,45 +132,53 @@ const handleConfirm = () => {
 .title-selecting-stage {
   max-width: 900px;
   margin: 0 auto;
-  padding: 40px 20px;
+  padding: 6px 0 10px;
 }
 
 .stage-header {
-  text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
+}
+
+.stage-kicker {
+  font-family: var(--kai);
+  color: var(--gold);
+  font-size: 14px;
+  letter-spacing: 0.24em;
+  margin-bottom: 6px;
 }
 
 .stage-title {
+  font-family: var(--kai);
   font-size: 28px;
   font-weight: 700;
-  margin: 0 0 12px;
-  color: var(--color-text);
+  margin: 0 0 8px;
+  color: var(--ink);
 }
 
 .stage-subtitle {
-  font-size: 15px;
-  color: var(--color-text-secondary);
+  font-size: 14px;
+  color: var(--ink-2);
   margin: 0;
 }
 
 .title-options {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  margin-bottom: 32px;
+  gap: 14px;
+  margin-bottom: 28px;
   width: 100%;
 }
 
+/* 标题选项：宣纸底 + 发丝边，hover 描金，选中朱砂 */
 .title-option {
-  padding: 20px;
-  background: var(--color-background-secondary);
-  border: 2px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  transition: all 0.2s;
+  padding: 18px 20px;
+  background: var(--paper);
+  border: 1.5px solid var(--hairline);
+  border-radius: 12px;
+  transition: all 0.3s var(--ease);
 
   &:hover {
-    border-color: var(--color-primary);
-    background: rgba(180, 83, 9, 0.04);
+    border-color: var(--gold);
   }
 
   :deep(.ant-radio-wrapper) {
@@ -180,6 +189,10 @@ const handleConfirm = () => {
   :deep(.ant-radio) {
     margin-top: 4px;
   }
+
+  :deep(.ant-radio-wrapper-checked) {
+    color: var(--vermilion);
+  }
 }
 
 .title-content {
@@ -188,21 +201,22 @@ const handleConfirm = () => {
 }
 
 .title-main {
-  font-size: 18px;
-  font-weight: 600;
-  color: var(--color-text);
-  margin-bottom: 8px;
+  font-family: var(--kai);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
   line-height: 1.4;
 }
 
 .title-sub {
-  font-size: 14px;
-  color: var(--color-text-secondary);
+  font-size: 13.5px;
+  color: var(--ink-2);
   line-height: 1.6;
 }
 
 .custom-inputs {
-  margin-top: 16px;
+  margin-top: 14px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -211,59 +225,64 @@ const handleConfirm = () => {
 
 .custom-input {
   font-size: 15px;
-  padding: 12px 16px;
+  padding: 10px 14px;
 }
 
 .description-section {
-  margin-bottom: 32px;
+  margin-bottom: 28px;
 }
 
 .section-label {
   display: block;
+  font-family: var(--kai);
   font-size: 15px;
-  font-weight: 600;
-  color: var(--color-text);
+  font-weight: 700;
+  color: var(--ink);
   margin-bottom: 6px;
 }
 
 .section-tip {
   font-size: 13px;
-  color: var(--color-text-muted);
+  color: var(--ink-3);
   margin: 0 0 12px;
 }
 
 .description-textarea {
   font-size: 15px;
   line-height: 1.6;
-  border-radius: var(--radius-md);
+  border-radius: 12px;
 }
 
 .actions {
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
 }
 
+/* 确认按钮：朱砂 + 按压感 */
 .confirm-btn {
   height: 48px;
-  padding: 0 48px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: var(--radius-lg);
-  background: var(--gradient-primary) !important;
+  padding: 0 38px;
+  font-family: var(--kai);
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  border-radius: 999px !important;
+  background: var(--vermilion) !important;
   border: none !important;
-  color: white !important;
-  box-shadow: 0 4px 14px rgba(180, 83, 9, 0.3) !important;
+  color: #FBF6EC !important;
+  box-shadow: 0 4px 0 var(--vermilion-dark) !important;
+  transition: all 0.3s var(--ease) !important;
 
   &:hover:not(:disabled) {
-    opacity: 0.92;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(180, 83, 9, 0.4) !important;
+    background: var(--vermilion-dark) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--vermilion-dark) !important;
   }
 
   &:disabled {
     background: var(--color-border) !important;
     box-shadow: none !important;
-    opacity: 0.6;
+    color: var(--ink-3) !important;
   }
 }
 </style>

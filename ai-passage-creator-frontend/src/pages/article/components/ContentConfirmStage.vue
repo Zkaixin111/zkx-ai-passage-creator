@@ -1,8 +1,9 @@
 <template>
   <div class="content-confirm-stage">
     <div class="stage-header">
-      <h2 class="stage-title">正文已生成</h2>
-      <p class="stage-subtitle">选择是否需要为文章生成配图</p>
+      <div class="stage-kicker">第 三 笔 · 落 笔</div>
+      <h2 class="stage-title">落笔 · 正文已就</h2>
+      <p class="stage-subtitle">选择是否需要为文章生成配图，画龙最后点睛。</p>
     </div>
 
     <div class="confirm-card">
@@ -60,7 +61,7 @@
           <template #icon>
             <CheckOutlined />
           </template>
-          {{ generateImages ? '开始生成配图' : '完成文章' }}
+          {{ generateImages ? '确认，开始点睛 →' : '完成文章 →' }}
         </a-button>
       </div>
     </div>
@@ -108,27 +109,39 @@ const handleConfirm = async () => {
 
 <style scoped lang="scss">
 .content-confirm-stage {
+  padding: 6px 0 10px;
+
   .stage-header {
     margin-bottom: 20px;
-
-    .stage-title {
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--color-text);
-      margin: 0 0 6px;
-    }
-
-    .stage-subtitle {
-      font-size: 14px;
-      color: var(--color-text-secondary);
-      margin: 0;
-    }
   }
 
+  .stage-kicker {
+    font-family: var(--kai);
+    color: var(--gold);
+    font-size: 14px;
+    letter-spacing: 0.24em;
+    margin-bottom: 6px;
+  }
+
+  .stage-title {
+    font-family: var(--kai);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+
+  .stage-subtitle {
+    font-size: 14px;
+    color: var(--ink-2);
+    margin: 0;
+  }
+
+  /* 配图确认卡：宣纸底 + 发丝边 */
   .confirm-card {
-    background: white;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-lg);
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 12px;
     padding: 24px;
   }
 
@@ -143,30 +156,32 @@ const handleConfirm = async () => {
       align-items: flex-start;
       margin: 0;
       padding: 14px 16px;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
+      background: var(--paper-card);
+      border: 1px solid var(--hairline);
+      border-radius: 10px;
       transition: all var(--transition-fast);
 
       &:hover {
-        border-color: var(--color-primary);
+        border-color: var(--gold);
       }
 
       &.ant-radio-wrapper-checked {
-        border-color: var(--color-primary);
-        background: rgba(180, 83, 9, 0.04);
+        border-color: var(--vermilion);
+        background: rgba(196, 64, 47, 0.04);
       }
     }
 
     .radio-label {
+      font-family: var(--kai);
       font-size: 15px;
-      font-weight: 600;
-      color: var(--color-text);
+      font-weight: 700;
+      color: var(--ink);
     }
 
     .radio-desc {
       display: block;
       font-size: 13px;
-      color: var(--color-text-muted);
+      color: var(--ink-3);
       margin-top: 2px;
       font-weight: 400;
     }
@@ -175,21 +190,27 @@ const handleConfirm = async () => {
   .method-section {
     margin-top: 20px;
     padding-top: 20px;
-    border-top: 1px dashed var(--color-border);
+    border-top: 1px dashed var(--hairline);
 
     .method-label {
       display: flex;
       align-items: center;
       gap: 8px;
+      font-family: var(--kai);
       font-size: 15px;
-      font-weight: 600;
-      color: var(--color-text);
+      font-weight: 700;
+      color: var(--ink);
       margin-bottom: 12px;
+
+      .anticon {
+        color: var(--gold);
+      }
 
       .method-hint {
         font-size: 12px;
         font-weight: 400;
-        color: var(--color-text-muted);
+        color: var(--ink-3);
+        font-family: var(--font-body);
       }
     }
 
@@ -200,7 +221,7 @@ const handleConfirm = async () => {
     }
 
     .vip-icon {
-      color: #f59e0b;
+      color: var(--gold);
       margin-left: 4px;
     }
 
@@ -210,7 +231,11 @@ const handleConfirm = async () => {
       gap: 6px;
       margin: 12px 0 0;
       font-size: 12px;
-      color: var(--color-text-muted);
+      color: var(--ink-3);
+
+      .anticon {
+        color: var(--gold);
+      }
     }
   }
 
@@ -219,14 +244,24 @@ const handleConfirm = async () => {
     text-align: right;
 
     .confirm-btn {
-      min-width: 160px;
-      height: 44px;
+      min-width: 180px;
+      height: 46px;
+      font-family: var(--kai);
       font-size: 15px;
-      font-weight: 600;
-      border-radius: var(--radius-lg);
-      background: var(--gradient-primary) !important;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      border-radius: 999px !important;
+      background: var(--vermilion) !important;
       border: none !important;
-      box-shadow: var(--shadow-green) !important;
+      color: #FBF6EC !important;
+      box-shadow: 0 4px 0 var(--vermilion-dark) !important;
+      transition: all 0.3s var(--ease) !important;
+
+      &:hover:not(:disabled) {
+        background: var(--vermilion-dark) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 0 var(--vermilion-dark) !important;
+      }
     }
   }
 }

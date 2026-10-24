@@ -1,182 +1,144 @@
 <template>
-  <div class="brand-section">
-    <div class="brand-bg"></div>
+  <!-- 品牌面板：卷轴插画做底 + 墨色渐变遮罩 + 竖排朱砂印章（登录/注册共用） -->
+  <div class="brand-panel">
+    <!-- 配图层：shenbi-cta.webp 放大 118% 并锚定左侧，右下角"AI生成"水印被裁出可视区 -->
+    <div class="brand-bg" aria-hidden="true"></div>
+    <!-- 遮罩层：115° 墨色渐变，保证左侧文字对比度 -->
+    <div class="brand-mask" aria-hidden="true"></div>
     <div class="brand-content">
-      <div class="brand-logo">
-        <img src="@/assets/logo.png" alt="Logo" class="logo-img" />
+      <div class="brand-seal shenbi-seal vertical">协笔</div>
+      <h1 class="brand-title">
+        {{ titleTop }}<br />
+        <em>{{ titleEm }}</em>{{ titleBottom }}
+      </h1>
+      <div class="brand-points">
+        <span v-for="(point, index) in points" :key="index">{{ point }}</span>
       </div>
-      <h1 class="brand-title">协笔 CoWrite</h1>
-      <p class="brand-subtitle">生成、确认、再生成 —— 每一步都由你掌控</p>
-      <div class="brand-features">
-        <div class="feature-item">
-          <CheckCircleOutlined class="feature-check" />
-          <span>标题、大纲由你确认，AI 全力辅助</span>
-        </div>
-        <div class="feature-item">
-          <CheckCircleOutlined class="feature-check" />
-          <span>流式生成正文，进度实时可见</span>
-        </div>
-        <div class="feature-item">
-          <CheckCircleOutlined class="feature-check" />
-          <span>多策略配图，图文一键成稿</span>
-        </div>
-      </div>
+      <div class="brand-note">COWRITE · HUMAN-IN-THE-LOOP WRITING</div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { CheckCircleOutlined } from '@ant-design/icons-vue'
+// 品牌面板内容全部由父页面传入（标语/亮点用真实产品文案，不造假数据）
+interface Props {
+  /** 主标题第一行 */
+  titleTop: string
+  /** 第二行的描金强调字（如「活」「赠」） */
+  titleEm: string
+  /** 第二行强调字之后的剩余文字 */
+  titleBottom: string
+  /** 三条「·」亮点文案 */
+  points: string[]
+}
+
+withDefaults(defineProps<Props>(), {
+  titleTop: '写什么，',
+  titleEm: '活',
+  titleBottom: '什么',
+  points: () => [
+    '六步智能体，替你研墨铺纸',
+    '每一笔落下之前，都等你点头',
+    '从此没有空白页',
+  ],
+})
 </script>
 
 <style scoped>
-.brand-section {
-  flex: 1;
-  padding: 48px 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.brand-panel {
   position: relative;
   overflow: hidden;
+  background: var(--ink);
+  min-height: 100%;
 }
 
+/* 配图背景层：放大 118% 锚定左侧，裁掉右下水印 */
 .brand-bg {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18) 0%, transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(254, 243, 199, 0.28) 0%, transparent 45%),
-    linear-gradient(135deg, #B45309 0%, #92400E 50%, #78350F 100%);
+  inset: 0;
+  background-image: url('@/assets/shenbi-cta.webp');
+  background-size: 118% auto;
+  background-position: left center;
+  background-repeat: no-repeat;
 }
 
-/* 漂浮光斑装饰 */
-.brand-section::before,
-.brand-section::after {
-  content: '';
+/* 墨色遮罩：115° 渐变，左深右浅 */
+.brand-mask {
   position: absolute;
-  border-radius: var(--radius-full);
-  filter: blur(70px);
-  opacity: 0.45;
-  animation: brand-float 10s ease-in-out infinite;
-  pointer-events: none;
-}
-
-.brand-section::before {
-  width: 300px;
-  height: 300px;
-  top: -80px;
-  right: -80px;
-  background: rgba(255, 255, 255, 0.35);
-}
-
-.brand-section::after {
-  width: 200px;
-  height: 200px;
-  bottom: -60px;
-  left: -40px;
-  background: rgba(255, 255, 255, 0.25);
-  animation-delay: -5s;
-}
-
-@keyframes brand-float {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-20px) scale(1.08);
-  }
-}
-
-.brand-bg::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-  animation: pulse-bg 8s ease-in-out infinite;
-}
-
-@keyframes pulse-bg {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 0.3; }
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    rgba(38, 34, 28, 0.88) 0%,
+    rgba(38, 34, 28, 0.55) 55%,
+    rgba(38, 34, 28, 0.25) 100%
+  );
 }
 
 .brand-content {
   position: relative;
-  z-index: 1;
-  text-align: center;
-  color: white;
+  z-index: 2;
+  color: #F7F1E5;
+  padding: 56px 52px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 640px;
 }
 
-.brand-logo {
-  margin-bottom: 24px;
-}
-
-.logo-img {
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: var(--radius-xl);
-  padding: 8px;
+/* 竖排朱砂印章 */
+.brand-seal {
+  width: 52px;
+  height: 52px;
+  font-size: 17px;
+  line-height: 1.15;
 }
 
 .brand-title {
-  font-size: 26px;
+  font-family: var(--kai);
+  font-size: 42px;
   font-weight: 700;
-  margin: 0 0 10px;
-  letter-spacing: -0.5px;
+  line-height: 1.4;
+  margin: auto 0 0;
+  letter-spacing: 0.02em;
 }
 
-.brand-subtitle {
-  font-size: 15px;
-  opacity: 0.9;
-  margin: 0 0 36px;
+.brand-title em {
+  font-style: normal;
+  color: var(--gold);
 }
 
-.brand-features {
-  text-align: left;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: var(--radius-lg);
-  padding: 20px 24px;
-  backdrop-filter: blur(12px) saturate(160%);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
+.brand-points {
+  margin-top: 26px;
+  display: grid;
   gap: 12px;
-  margin-bottom: 14px;
-  font-size: 14px;
 }
 
-.feature-item:last-child {
-  margin-bottom: 0;
+.brand-points span {
+  font-family: var(--kai);
+  font-size: 15px;
+  color: rgba(247, 241, 229, 0.82);
+  letter-spacing: 0.06em;
 }
 
-.feature-check {
-  font-size: 18px;
-  color: white;
+.brand-points span::before {
+  content: '·';
+  color: var(--gold);
+  margin-right: 10px;
+  font-weight: 700;
 }
 
-/* 响应式 */
-@media (max-width: 768px) {
-  .brand-section {
-    padding: 32px 24px;
-  }
+/* 底部 mono 底注推到面板最下 */
+.brand-note {
+  margin-top: auto;
+  padding-top: 40px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: rgba(247, 241, 229, 0.45);
+  letter-spacing: 0.12em;
+}
 
-  .brand-title {
-    font-size: 22px;
-  }
-
-  .brand-features {
+@media (max-width: 860px) {
+  .brand-panel {
     display: none;
   }
 }

@@ -2,44 +2,43 @@
   <div class="vip-page">
     <div class="vip-container">
       <!-- 页面头部 -->
-      <div class="page-header">
-        <div class="header-badge">
-          <CrownOutlined />
-          <span>会员专属</span>
-        </div>
-        <h1 class="page-title">升级永久会员</h1>
-        <p class="page-subtitle">解锁全部高级功能，无限创作配额，终身有效</p>
+      <div class="sec-head">
+        <p class="kicker">磨 墨 有 价</p>
+        <h1 class="page-title">供起神笔，落笔不愁</h1>
+        <p class="page-subtitle">所有档位都包含<b>四笔全流程</b>：研墨 · 起稿 · 落笔 · 点睛。</p>
       </div>
 
-      <!-- 主内容区：左右布局 -->
+      <!-- 主内容区：左右布局（后端为单一永久会员套餐，保留真实套餐数据套新皮肤） -->
       <div class="main-section">
         <!-- 左侧：价格卡片 -->
-        <div class="pricing-card">
-          <div class="pricing-badge">限时优惠</div>
-          <div class="pricing-header">
+        <div class="plan-card rec">
+          <div class="plan-badge">最 常 被 挑 走</div>
+          <div class="plan-header">
             <div class="plan-icon">
               <CrownOutlined />
             </div>
             <h2 class="plan-name">永久会员</h2>
+            <span class="plan-en">LIFETIME</span>
             <div class="price-display">
               <span class="currency">¥</span>
               <span class="price">29.9</span>
-              <span class="period">/永久</span>
+              <span class="period">/ 永久</span>
             </div>
-            <div class="original-price">
+            <div class="price-note">
               <span class="original-label">原价</span>
               <span class="original-value">¥99</span>
+              <span class="price-tip">一次蘸墨，终身不干</span>
             </div>
           </div>
 
           <div class="pricing-divider"></div>
 
-          <div class="pricing-features">
-            <div v-for="(item, index) in pricingFeatures" :key="index" class="pricing-feature">
-              <CheckCircleOutlined class="feature-check" />
+          <!-- 权益列表（描金圆点） -->
+          <ul class="benefits">
+            <li v-for="(item, index) in pricingFeatures" :key="index">
               <span>{{ item }}</span>
-            </div>
-          </div>
+            </li>
+          </ul>
 
           <a-button
             type="primary"
@@ -47,15 +46,15 @@
             :loading="purchasing"
             :disabled="isVip"
             @click="handlePurchase"
-            class="purchase-btn"
+            class="buy-btn"
           >
             <template #icon>
               <ThunderboltOutlined />
             </template>
-            {{ isVip ? '您已是永久会员' : '立即升级' }}
+            {{ isVip ? '您已是永久会员' : '蘸 墨 订 阅' }}
           </a-button>
 
-          <div class="security-notice">
+          <div class="sandbox">
             <SafetyOutlined />
             <span>支付宝安全支付 · 7天无理由退款</span>
           </div>
@@ -83,14 +82,11 @@
 
       <!-- 常见问题 -->
       <div class="faq-section">
-        <div class="section-header">
-          <QuestionCircleOutlined class="section-icon" />
-          <h2 class="section-title">常见问题</h2>
-        </div>
+        <h2 class="faq-title">开笔前，四问四答</h2>
         <div class="faq-grid">
-          <div v-for="(faq, index) in faqs" :key="index" class="faq-card">
-            <h4 class="faq-question">{{ faq.question }}</h4>
-            <p class="faq-answer">{{ faq.answer }}</p>
+          <div v-for="(faq, index) in faqs" :key="index" class="qa">
+            <b>{{ faq.question }}</b>
+            <p>{{ faq.answer }}</p>
           </div>
         </div>
       </div>
@@ -116,7 +112,7 @@
         <!-- 支付成功 -->
         <div v-else class="pay-success">
           <CheckCircleFilled class="pay-success-icon" />
-          <h3>开通成功！</h3>
+          <h3>落印成功！</h3>
           <p>欢迎成为永久会员，畅享全部高级功能</p>
         </div>
       </a-modal>
@@ -130,7 +126,6 @@ import { useRouter, useRoute } from 'vue-router'
 import { message, Modal } from 'ant-design-vue'
 import {
   CheckCircleFilled,
-  CheckCircleOutlined,
   CrownOutlined,
   SafetyOutlined,
   ThunderboltOutlined,
@@ -139,9 +134,7 @@ import {
   AppstoreOutlined,
   EditOutlined,
   StarOutlined,
-  GiftOutlined,
-  QuestionCircleOutlined,
-  AlipayCircleOutlined
+  GiftOutlined
 } from '@ant-design/icons-vue'
 import { useLoginUserStore } from '@/stores/loginUser'
 import { createPay } from '@/api/payController'
@@ -248,7 +241,7 @@ const handlePayModalCancel = () => {
   payModalVisible.value = false
 }
 
-// 会员特权列表
+// 会员特权列表（真实会员能力）
 const features = [
   {
     icon: RocketOutlined,
@@ -282,7 +275,7 @@ const features = [
   }
 ]
 
-// 价格卡片特性
+// 价格卡片特性（描金圆点权益列表）
 const pricingFeatures = [
   '无限创作配额',
   '全部高级配图功能',
@@ -339,94 +332,102 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 .vip-page {
-  min-height: calc(100vh - 64px);
-  background: var(--gradient-hero);
+  min-height: calc(100vh - 68px);
+  background: var(--paper);
   padding: 48px 24px 80px;
 }
 
 .vip-container {
-  max-width: 1200px;
+  max-width: 1080px;
   margin: 0 auto;
 }
 
 /* 页面头部 */
-.page-header {
+.sec-head {
   text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 52px;
 }
 
-.header-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: rgba(180, 83, 9, 0.1);
-  border: 1px solid rgba(180, 83, 9, 0.2);
-  border-radius: var(--radius-full);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-primary-dark);
-  margin-bottom: 20px;
-
-  .anticon {
-    font-size: 14px;
-  }
+.kicker {
+  font-family: var(--kai);
+  color: var(--gold);
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  margin-bottom: 10px;
 }
 
 .page-title {
-  font-size: 36px;
+  font-family: var(--kai);
+  font-size: 38px;
   font-weight: 700;
-  margin: 0 0 12px;
-  color: var(--color-text);
-  letter-spacing: -0.5px;
+  margin: 0 0 10px;
+  color: var(--ink);
 }
 
 .page-subtitle {
-  font-size: 16px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   margin: 0;
+  font-size: 15px;
+
+  b {
+    color: var(--vermilion);
+  }
 }
 
 /* 主内容区 */
 .main-section {
   display: grid;
   grid-template-columns: 400px 1fr;
-  gap: 32px;
+  gap: 28px;
   margin-bottom: 56px;
+  align-items: stretch;
 }
 
-/* 价格卡片 */
-.pricing-card {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-radius: var(--radius-xl);
-  padding: 36px 32px;
-  box-shadow: var(--shadow-xl);
-  border: 2px solid var(--color-primary);
+/* ==================== 价格卡（定价原型 plan.rec 皮肤） ==================== */
+.plan-card {
   position: relative;
-  height: fit-content;
-  position: sticky;
-  top: 88px;
+  background: var(--paper-card);
+  border: 1.5px solid var(--hairline);
+  border-radius: 18px;
+  padding: 36px 30px 30px;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.35s var(--ease);
+
+  &:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 18px 40px rgba(38, 34, 28, 0.1);
+    border-color: var(--gold);
+  }
+
+  /* 推荐档：朱砂双描边 */
+  &.rec {
+    border: 2px solid var(--vermilion);
+    box-shadow: 0 16px 40px rgba(196, 64, 47, 0.14);
+  }
 }
 
-.pricing-badge {
+/* 推荐档顶部朱砂徽标 */
+.plan-badge {
   position: absolute;
-  top: -12px;
+  top: -15px;
   left: 50%;
-  transform: translateX(-50%);
-  background: var(--gradient-primary);
-  color: white;
-  padding: 6px 20px;
-  border-radius: var(--radius-full);
-  font-size: 12px;
-  font-weight: 600;
-  box-shadow: var(--shadow-green);
+  transform: translateX(-50%) rotate(-2deg);
+  background: var(--vermilion);
+  color: #fbf6ec;
+  font-family: var(--kai);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+  padding: 5px 18px;
+  border-radius: 999px;
+  box-shadow: 0 4px 10px rgba(196, 64, 47, 0.35);
+  white-space: nowrap;
 }
 
-.pricing-header {
+.plan-header {
   text-align: center;
-  padding-bottom: 20px;
+  padding-bottom: 16px;
 }
 
 .plan-icon {
@@ -436,150 +437,184 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(180, 83, 9, 0.1);
-  border-radius: var(--radius-lg);
+  background: rgba(196, 64, 47, 0.08);
+  border-radius: 12px;
 
   .anticon {
     font-size: 26px;
-    color: var(--color-primary);
+    color: var(--vermilion);
   }
 }
 
 .plan-name {
-  font-size: 20px;
+  font-family: var(--kai);
+  font-size: 23px;
   font-weight: 700;
-  margin: 0 0 14px;
-  color: var(--color-text);
+  margin: 0 0 4px;
+  color: var(--ink);
 }
 
+.plan-en {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-3);
+  letter-spacing: 0.16em;
+  margin-bottom: 20px;
+  display: block;
+}
+
+/* 楷体价格 */
 .price-display {
   display: flex;
   align-items: baseline;
   justify-content: center;
+  font-family: var(--kai);
   margin-bottom: 6px;
 }
 
 .currency {
   font-size: 18px;
-  color: var(--color-text-secondary);
+  color: var(--ink-3);
   margin-right: 2px;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .price {
-  font-size: 52px;
+  font-size: 46px;
   font-weight: 700;
-  color: var(--color-primary);
+  color: var(--vermilion);
   line-height: 1;
 }
 
 .period {
-  font-size: 14px;
-  color: var(--color-text-muted);
+  font-size: 15px;
+  color: var(--ink-3);
   margin-left: 4px;
 }
 
-.original-price {
+.price-note {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  margin-bottom: 6px;
 }
 
 .original-label {
-  color: var(--color-text-muted);
+  color: var(--ink-3);
 }
 
 .original-value {
-  color: var(--color-text-muted);
+  color: var(--ink-3);
   text-decoration: line-through;
+}
+
+.price-tip {
+  color: var(--gold);
 }
 
 .pricing-divider {
   height: 1px;
-  background: var(--color-border-light);
-  margin: 20px 0;
+  background: var(--hairline);
+  margin: 16px 0;
 }
 
-.pricing-features {
-  margin-bottom: 24px;
-}
+/* 权益列表：描金圆点 */
+.benefits {
+  list-style: none;
+  display: grid;
+  gap: 11px;
+  margin: 0 0 30px;
+  flex: 1;
+  padding: 0;
 
-.pricing-feature {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 0;
-  font-size: 14px;
-  color: var(--color-text);
+  li {
+    font-size: 14px;
+    color: var(--ink-2);
+    padding-left: 22px;
+    position: relative;
 
-  .feature-check {
-    color: var(--color-primary);
-    font-size: 15px;
-    flex-shrink: 0;
+    &::before {
+      content: '';
+      position: absolute;
+      left: 2px;
+      top: 9px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
   }
 }
 
-.purchase-btn {
+/* 购买按钮：朱砂 + 按压感 */
+.buy-btn {
   width: 100%;
   height: 48px;
-  font-size: 15px;
-  font-weight: 600;
-  background: var(--gradient-primary) !important;
+  font-family: var(--kai);
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  background: var(--vermilion) !important;
   border: none !important;
-  box-shadow: var(--shadow-green) !important;
-  border-radius: var(--radius-md) !important;
+  border-radius: 999px !important;
+  color: #fbf6ec !important;
+  box-shadow: 0 4px 0 var(--vermilion-dark) !important;
+  transition: all 0.3s var(--ease) !important;
 
   &:hover:not(:disabled) {
-    opacity: 0.9;
-    transform: translateY(-1px);
+    background: var(--vermilion-dark) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--vermilion-dark) !important;
   }
 
   &:disabled {
-    background: var(--color-background-tertiary) !important;
-    color: var(--color-text-secondary) !important;
+    background: var(--color-border) !important;
+    color: var(--ink-3) !important;
     box-shadow: none !important;
   }
 }
 
-.security-notice {
+/* 沙箱演示提示 */
+.sandbox {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   margin-top: 14px;
-  font-size: 12px;
-  color: var(--color-text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  letter-spacing: 0.1em;
 
   .anticon {
-    color: var(--color-primary);
     font-size: 13px;
   }
 }
 
-/* 会员特权 */
+/* ==================== 会员特权（宣纸卡） ==================== */
 .features-section {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border-radius: var(--radius-xl);
+  background: var(--paper-card);
+  border-radius: 18px;
   padding: 32px;
-  border: var(--glass-border);
-  box-shadow: var(--shadow-md);
+  border: 1.5px solid var(--hairline);
+  box-shadow: var(--shadow-hard-sm);
 }
 
 .features-title {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 18px;
+  font-family: var(--kai);
+  font-size: 20px;
   font-weight: 700;
   margin: 0 0 24px;
-  color: var(--color-text);
+  color: var(--ink);
 
   .anticon {
-    color: var(--color-primary);
+    color: var(--gold);
     font-size: 20px;
   }
 }
@@ -595,16 +630,18 @@ onUnmounted(() => {
   align-items: flex-start;
   gap: 14px;
   padding: 20px;
-  background: var(--glass-bg-green);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid rgba(180, 83, 9, 0.15);
-  border-radius: var(--radius-lg);
-  transition: transform var(--transition-bounce), box-shadow var(--transition-normal), background var(--transition-normal);
+  background: var(--paper);
+  border: 1px dashed var(--hairline);
+  border-radius: 14px;
+  transition:
+    transform var(--transition-bounce),
+    box-shadow var(--transition-normal),
+    border-color var(--transition-normal);
 
   &:hover {
     transform: translateY(-3px);
-    background: rgba(220, 252, 231, 0.9);
+    border-color: var(--gold);
+    border-style: solid;
     box-shadow: var(--shadow-card-hover);
   }
 }
@@ -616,13 +653,13 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(180, 83, 9, 0.1);
-  border-radius: var(--radius-md);
+  background: rgba(196, 64, 47, 0.08);
+  border-radius: 10px;
 }
 
 .feature-icon {
   font-size: 18px;
-  color: var(--color-primary);
+  color: var(--vermilion);
 }
 
 .feature-content {
@@ -632,69 +669,58 @@ onUnmounted(() => {
 
 .feature-title {
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0 0 4px;
-  color: var(--color-text);
+  color: var(--ink);
 }
 
 .feature-desc {
   font-size: 13px;
-  color: var(--color-text-secondary);
+  color: var(--ink-2);
   margin: 0;
   line-height: 1.5;
 }
 
-/* FAQ 部分 */
+/* ==================== FAQ（问 · 描金前缀） ==================== */
 .faq-section {
-  background: white;
-  border-radius: var(--radius-xl);
-  padding: 32px;
-  border: 1px solid var(--color-border);
+  max-width: 640px;
+  margin: 0 auto 20px;
+  border-top: 1px solid var(--hairline);
+  padding-top: 40px;
 }
 
-.section-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 24px;
-}
-
-.section-icon {
-  font-size: 20px;
-  color: var(--color-primary);
-}
-
-.section-title {
-  font-size: 18px;
+.faq-title {
+  font-family: var(--kai);
+  font-size: 22px;
   font-weight: 700;
-  margin: 0;
-  color: var(--color-text);
+  margin: 0 0 20px;
+  text-align: center;
+  color: var(--ink);
 }
 
-.faq-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
+.qa {
+  margin-bottom: 18px;
 
-.faq-card {
-  padding: 20px;
-  background: var(--color-background-secondary);
-  border-radius: var(--radius-lg);
-}
+  b {
+    font-family: var(--kai);
+    font-size: 15.5px;
+    display: block;
+    margin-bottom: 6px;
+    color: var(--ink);
 
-.faq-question {
-  font-size: 14px;
-  font-weight: 600;
-  margin: 0 0 8px;
-  color: var(--color-text);
-}
+    &::before {
+      content: '问 · ';
+      color: var(--gold);
+    }
+  }
 
-.faq-answer {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-  margin: 0;
-  line-height: 1.6;
+  p {
+    font-size: 13.5px;
+    color: var(--ink-2);
+    padding-left: 2px;
+    margin: 0;
+    line-height: 1.7;
+  }
 }
 
 /* 响应式 */
@@ -703,9 +729,8 @@ onUnmounted(() => {
     grid-template-columns: 1fr;
   }
 
-  .pricing-card {
-    position: static;
-    max-width: 400px;
+  .plan-card {
+    max-width: 420px;
     margin: 0 auto;
   }
 
@@ -726,23 +751,12 @@ onUnmounted(() => {
   .page-title {
     font-size: 28px;
   }
+}
 
-  .page-subtitle {
-    font-size: 14px;
-  }
-
-  .pricing-card {
-    padding: 28px 24px;
-  }
-
-  .price {
-    font-size: 44px;
-  }
-
-  .features-section,
-  .faq-section {
-    padding: 24px;
-  }
+.faq-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0 32px;
 }
 
 /* 支付弹窗 */
@@ -753,20 +767,21 @@ onUnmounted(() => {
   .pay-hint {
     font-size: 14px;
     font-weight: 600;
-    color: var(--color-text);
+    color: var(--ink);
     margin: 0 0 8px;
   }
 
   .pay-order {
+    font-family: var(--font-mono);
     font-size: 12px;
-    color: var(--color-text-muted);
+    color: var(--ink-3);
     margin: 0 0 4px;
     word-break: break-all;
   }
 
   .pay-tip {
     font-size: 12px;
-    color: #f59e0b;
+    color: var(--gold);
     margin: 0;
   }
 }
@@ -777,20 +792,21 @@ onUnmounted(() => {
 
   .pay-success-icon {
     font-size: 56px;
-    color: var(--color-primary);
+    color: var(--vermilion);
     margin-bottom: 12px;
   }
 
   h3 {
+    font-family: var(--kai);
     font-size: 20px;
     font-weight: 700;
-    color: var(--color-text);
+    color: var(--ink);
     margin: 0 0 8px;
   }
 
   p {
     font-size: 14px;
-    color: var(--color-text-secondary);
+    color: var(--ink-2);
     margin: 0;
   }
 }
