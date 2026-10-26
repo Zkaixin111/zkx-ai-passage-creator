@@ -6,7 +6,6 @@
     <!-- 遮罩层：115° 墨色渐变，保证左侧文字对比度 -->
     <div class="brand-mask" aria-hidden="true"></div>
     <div class="brand-content">
-      <div class="brand-seal shenbi-seal vertical">协笔</div>
       <h1 class="brand-title">
         {{ titleTop }}<br />
         <em>{{ titleEm }}</em>{{ titleBottom }}
@@ -83,14 +82,6 @@ withDefaults(defineProps<Props>(), {
   flex-direction: column;
   height: 100%;
   min-height: 640px;
-}
-
-/* 竖排朱砂印章 */
-.brand-seal {
-  width: 52px;
-  height: 52px;
-  font-size: 17px;
-  line-height: 1.15;
 }
 
 .brand-title {

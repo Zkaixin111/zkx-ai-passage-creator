@@ -284,11 +284,13 @@ const doLogout = async () => {
   display: flex;
   align-items: center;
   gap: 16px;
+  line-height: normal;
 }
 
 .user-dropdown {
   cursor: pointer;
   height: 68px;
+  line-height: normal;
   display: flex;
   align-items: center;
   gap: 16px;
@@ -298,7 +300,9 @@ const doLogout = async () => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
+  height: 36px;
+  line-height: 1.4;
+  padding: 0 14px;
   border-radius: 10px;
   font-size: 13px;
   font-weight: 500;
@@ -321,7 +325,9 @@ const doLogout = async () => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
+  height: 36px;
+  line-height: 1.4;
+  padding: 0 14px;
   font-size: 13px;
   font-weight: 500;
   color: var(--gold);
@@ -340,6 +346,7 @@ const doLogout = async () => {
 .user-info {
   padding: 6px 12px;
   border-radius: 10px;
+  line-height: 1.4;
   transition: all var(--transition-fast);
   display: flex;
   align-items: center;
