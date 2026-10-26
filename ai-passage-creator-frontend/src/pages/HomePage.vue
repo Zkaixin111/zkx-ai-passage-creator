@@ -141,10 +141,10 @@ onUnmounted(() => {
       <div class="hero-inner">
         <!-- 左栏：文字与输入 -->
         <div class="hero-left">
-          <div class="hero-tag">神笔已就位 · 等你执笔</div>
+          <div class="hero-tag">AI 人机协同写作平台</div>
           <h1 class="hero-title">写什么，<em>活</em>什么</h1>
           <p class="hero-subtitle">
-            马良的神笔画什么就活什么。协笔也一样——你说清想写什么，六步智能体替你研墨铺纸，落笔成章。每一步都摊开给你看，决定权始终在你手里。
+            你出选题，AI 生成标题、大纲和成稿；每一步都看得见、可修改，你确认后才进入下一步。
           </p>
 
           <div class="hero-input">

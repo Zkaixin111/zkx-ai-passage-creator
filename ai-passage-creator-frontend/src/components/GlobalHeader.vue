@@ -261,20 +261,6 @@ const doLogout = async () => {
   text-decoration: none;
 }
 
-/* 导航项底部指示条（实色朱砂） */
-.nav-item::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 50%;
-  transform: translateX(-50%) scaleX(0);
-  width: 60%;
-  height: 2px;
-  border-radius: var(--radius-full);
-  background: var(--vermilion);
-  transition: transform var(--transition-fast);
-}
-
 .nav-item:hover {
   color: var(--vermilion);
   background: rgba(255, 253, 247, 0.9);
@@ -284,10 +270,6 @@ const doLogout = async () => {
   color: var(--vermilion);
   background: rgba(196, 64, 47, 0.08);
   font-weight: 600;
-}
-
-.nav-item.active::after {
-  transform: translateX(-50%) scaleX(1);
 }
 
 .nav-icon {

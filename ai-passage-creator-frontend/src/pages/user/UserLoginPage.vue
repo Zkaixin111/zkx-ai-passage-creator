@@ -88,8 +88,8 @@ const loginUserStore = useLoginUserStore()
 
 // 左侧品牌面板三条亮点（真实产品能力）
 const brandPoints = [
-  '六步智能体，替你研墨铺纸',
-  '每一笔落下之前，都等你点头',
+  'AI 六步流水线：标题、大纲、成稿、配图',
+  '每一步都等你确认，不满意随时改',
   '从此没有空白页',
 ]
 
