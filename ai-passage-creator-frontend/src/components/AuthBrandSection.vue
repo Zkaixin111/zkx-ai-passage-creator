@@ -33,9 +33,9 @@ interface Props {
 }
 
 withDefaults(defineProps<Props>(), {
-  titleTop: '写什么，',
-  titleEm: '活',
-  titleBottom: '什么',
+  titleTop: '一句话，',
+  titleEm: '成',
+  titleBottom: '一篇文章',
   points: () => [
     'AI 六步流水线：标题、大纲、成稿、配图',
     '每一步都等你确认，不满意随时改',

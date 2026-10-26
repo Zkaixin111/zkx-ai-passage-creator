@@ -142,7 +142,7 @@ onUnmounted(() => {
         <!-- 左栏：文字与输入 -->
         <div class="hero-left">
           <div class="hero-tag">AI 人机协同写作平台</div>
-          <h1 class="hero-title">写什么，<em>活</em>什么</h1>
+          <h1 class="hero-title">一句话，<em>成</em>一篇文章</h1>
           <p class="hero-subtitle">
             你出选题，AI 生成标题、大纲和成稿；每一步都看得见、可修改，你确认后才进入下一步。
           </p>

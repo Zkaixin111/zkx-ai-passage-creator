@@ -3,9 +3,9 @@
     <div class="auth-container">
       <!-- 左侧品牌面板（登录注册共用组件，传入登录标语与亮点） -->
       <AuthBrandSection
-        title-top="写什么，"
-        title-em="活"
-        title-bottom="什么"
+        title-top="一句话，"
+        title-em="成"
+        title-bottom="一篇文章"
         :points="brandPoints"
       />
 
