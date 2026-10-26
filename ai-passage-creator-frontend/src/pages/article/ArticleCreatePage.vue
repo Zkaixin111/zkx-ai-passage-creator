@@ -29,14 +29,14 @@
           <div v-if="currentPhase === 'INPUT'" key="input" class="input-state">
           <div class="stage-kicker">第 一 笔 · 研 墨</div>
           <h2 class="stage-title">研墨 · 你要写什么？</h2>
-          <p class="stage-hint">一句话说清选题即可。神笔会先给出几组标题，你点头才往下走。</p>
+          <p class="stage-hint">一句话说清你想写的主题，AI 会先给出几组标题，你确认后才往下走。</p>
 
             <div class="input-area">
               <a-textarea
                 v-model:value="topic"
                 placeholder="请输入您想创作的文章选题，例如：2026年AI如何改变职场"
-                :rows="5"
-                :maxlength="500"
+                :auto-size="{ minRows: 1, maxRows: 4 }"
+                :maxlength="50"
                 show-count
                 class="topic-textarea"
               />
@@ -69,7 +69,7 @@
               <div class="style-section">
                 <div class="section-header">
                   <span class="section-title">目标字数</span>
-                  <span class="section-tip">（AI 生成字数可能上下浮动 10%）</span>
+                  <span class="section-tip">（AI 生成字数可能上下浮动 10%，自定义上限 5000 字）</span>
                 </div>
                 <a-radio-group v-model:value="selectedWordCount" class="style-group" @change="onWordCountPresetChange">
                   <a-radio :value="800">短篇 800</a-radio>
@@ -429,6 +429,28 @@
           </div>
         </div>
 
+        <!-- 最近创作（登录用户，点击直达详情/继续创作） -->
+        <div v-if="currentPhase === 'INPUT' && !showLivePanel && loginUserStore.loginUser.id" class="panel-section">
+          <h4 class="panel-title">
+            <HistoryOutlined />
+            最近创作
+          </h4>
+          <div v-if="recentArticles.length > 0" class="recent-list">
+            <div
+              v-for="article in recentArticles"
+              :key="article.taskId"
+              class="recent-item"
+              @click="goArticle(article)"
+            >
+              <span class="recent-title">{{ article.mainTitle || article.topic }}</span>
+              <span class="recent-status" :class="article.status === 'COMPLETED' ? 'done' : 'doing'">
+                {{ article.status === 'COMPLETED' ? '已完成' : '生成中' }}
+              </span>
+            </div>
+          </div>
+          <p v-else class="recent-empty">完成第一篇后，会出现在这里</p>
+        </div>
+
         <!-- 当前选题提示（与现场面板互斥） -->
         <div v-if="currentPhase !== 'INPUT' && currentPhase !== 'COMPLETED' && topic && !showLivePanel" class="panel-section">
           <h4 class="panel-title">
@@ -441,18 +463,6 @@
         </div>
 
         <!-- 完成态的快捷操作与统计已迁入左侧「成稿一览」，右栏仅保留 sticky 日志，避免遮挡 -->
-
-        <!-- 底部帮助链接 -->
-        <div v-if="!showLivePanel" class="panel-footer">
-          <a class="help-link">
-            <QuestionCircleOutlined />
-            使用帮助
-          </a>
-          <a class="help-link">
-            <MessageOutlined />
-            反馈建议
-          </a>
-        </div>
       </aside>
     </div>
 
@@ -480,8 +490,7 @@ import {
   RedoOutlined,
   BulbOutlined,
   BarChartOutlined,
-  QuestionCircleOutlined,
-  MessageOutlined,
+  HistoryOutlined,
   PictureOutlined,
   WarningOutlined,
   CrownOutlined,
@@ -489,11 +498,26 @@ import {
   FileMarkdownOutlined,
   FilePdfOutlined
 } from '@ant-design/icons-vue'
-import { createArticle, confirmTitle, confirmOutline, confirmContent, getArticle } from '@/api/articleController'
+import { createArticle, confirmTitle, confirmOutline, confirmContent, getArticle, listArticle } from '@/api/articleController'
 import { connectSSE, closeSSE, type SSEMessage } from '@/utils/sse'
 import { isAdmin as checkIsAdmin, isVip as checkIsVip, hasQuota as checkHasQuota } from '@/utils/permission'
 import { exportAsMarkdown, exportAsPdf } from '@/utils/article'
 import { marked } from 'marked'
+
+// 最近创作（右栏卡片数据，登录用户展示最近 3 篇，点击直达）
+const recentArticles = ref<API.ArticleVO[]>([])
+const loadRecentArticles = async () => {
+  if (!loginUserStore.loginUser.id) return
+  try {
+    const res = await listArticle({ pageNum: 1, pageSize: 3 })
+    recentArticles.value = res.data.data?.records || []
+  } catch (error) {
+    console.error('加载最近创作失败:', error)
+  }
+}
+const goArticle = (article: API.ArticleVO) => {
+  router.push(`/article/${article.taskId}`)
+}
 import { FOUR_BRUSHES, resolveCurrentBrush, getBrushState, type BrushState } from '@/constants/fourBrushes'
 import TitleSelectingStage from './components/TitleSelectingStage.vue'
 import OutlineEditingStage from './components/OutlineEditingStage.vue'
@@ -517,6 +541,8 @@ const exampleTopics = [
   '如何培养深度思考',
   '新能源汽车趋势',
   '健康饮食指南',
+  '年轻人为什么爱上City Walk',
+  '短视频时代如何保持深度阅读',
 ]
 
 // 阶段状态
@@ -1323,6 +1349,7 @@ const resetCreate = () => {
 
 // 组件挂载时检查路由参数 + 恢复未完成的创作现场
 onMounted(() => {
+  loadRecentArticles()
   if (route.query.topic) {
     topic.value = route.query.topic as string
   }
@@ -1460,6 +1487,21 @@ onBeforeUnmount(() => {
   overflow: hidden;
   max-height: calc(100vh - 220px);
   overflow-y: auto;
+  /* 滚动条平时隐形，悬停卡片才浮现，避免常驻灰条抢视线 */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+
+  &:hover {
+    scrollbar-color: rgba(38, 34, 28, 0.25) transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: transparent;
+  }
+
+  &:hover::-webkit-scrollbar-thumb {
+    background: rgba(38, 34, 28, 0.25);
+  }
 }
 
 /* 每笔 kicker：描金楷体 */
@@ -1526,7 +1568,20 @@ onBeforeUnmount(() => {
 /* ==================== 输入状态 ==================== */
 .topic-textarea {
   border-radius: 12px !important;
-  font-size: 15px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.6;
+
+  /* 单行时文字垂直居中，多行时自适应撑开 */
+  :deep(textarea),
+  textarea {
+    font-size: 18px;
+    font-weight: 600;
+    line-height: 1.6;
+    padding-top: 9px;
+    padding-bottom: 9px;
+    resize: none;
+  }
 }
 
 .style-section {
@@ -2253,6 +2308,67 @@ onBeforeUnmount(() => {
   }
 }
 
+/* 最近创作列表 */
+.recent-list {
+  display: grid;
+  gap: 8px;
+}
+
+.recent-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: var(--paper);
+  cursor: pointer;
+  transition: all 0.3s var(--ease);
+
+  &:hover {
+    background: var(--paper-2);
+
+    .recent-title {
+      color: var(--vermilion);
+    }
+  }
+}
+
+.recent-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13.5px;
+  color: var(--ink);
+  transition: color 0.3s var(--ease);
+}
+
+.recent-status {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+
+  &.done {
+    color: var(--jade);
+    background: rgba(61, 107, 92, 0.1);
+  }
+
+  &.doing {
+    color: var(--gold);
+    background: rgba(192, 138, 62, 0.12);
+  }
+}
+
+.recent-empty {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-3);
+  line-height: 1.6;
+}
+
 .action-list {
   display: grid;
   gap: 10px;
@@ -2286,25 +2402,6 @@ onBeforeUnmount(() => {
   font-size: 12px;
   color: var(--ink-3);
   letter-spacing: 0.1em;
-}
-
-.panel-footer {
-  display: flex;
-  justify-content: space-between;
-  padding: 4px 8px;
-
-  .help-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12.5px;
-    color: var(--ink-3);
-    cursor: pointer;
-
-    &:hover {
-      color: var(--vermilion);
-    }
-  }
 }
 
 /* ==================== 阶段切换过渡 ==================== */

@@ -28,6 +28,12 @@
               </template>
               导出 Markdown
             </a-button>
+            <a-button @click="exportPdf" class="export-btn">
+              <template #icon>
+                <FilePdfOutlined />
+              </template>
+              导出 PDF
+            </a-button>
           </div>
         </div>
       </div>
@@ -115,8 +121,8 @@
 
           <a-divider v-if="executionStats && executionStats.logs && executionStats.logs.length > 0" />
 
-          <!-- 大纲 -->
-          <div v-if="article.outline && article.outline.length > 0" class="outline-section">
+          <!-- 大纲（仅生成中/失败时展示；已完成的文章直接看正文，大纲反而干扰阅读） -->
+          <div v-if="article.outline && article.outline.length > 0 && article.status !== 'COMPLETED'" class="outline-section">
             <h2 class="section-title">
               <OrderedListOutlined class="section-icon" />
               文章大纲
@@ -131,7 +137,7 @@
             </div>
           </div>
 
-          <a-divider v-if="article.outline && article.outline.length > 0" />
+          <a-divider v-if="article.outline && article.outline.length > 0 && article.status !== 'COMPLETED'" />
 
           <!-- 完整图文（优先展示） -->
           <div v-if="article.fullContent" class="content-section">
@@ -180,6 +186,7 @@ import { message, Modal } from 'ant-design-vue'
 import {
   ArrowLeftOutlined,
   DownloadOutlined,
+  FilePdfOutlined,
   OrderedListOutlined,
   FileTextOutlined,
   PictureOutlined,
@@ -192,6 +199,7 @@ import {
 } from '@ant-design/icons-vue'
 import { getArticle, getExecutionLogs } from '@/api/articleController'
 import { marked } from 'marked'
+import { exportAsPdf } from '@/utils/article'
 import dayjs from 'dayjs'
 
 const router = useRouter()
@@ -285,6 +293,23 @@ const exportMarkdown = () => {
   URL.revokeObjectURL(url)
 
   message.success('导出成功')
+}
+
+// 导出 PDF（复用 utils/article 的渲染管线，与创作页一致）
+const exportPdf = async () => {
+  if (!article.value) return
+  try {
+    await exportAsPdf({
+      title: article.value.mainTitle || '',
+      subTitle: article.value.subTitle || '',
+      content: article.value.content || '',
+      fullContent: article.value.fullContent || '',
+    })
+    message.success('PDF 导出成功')
+  } catch (error) {
+    console.error('PDF 导出失败:', error)
+    message.error('导出失败，请重试')
+  }
 }
 
 // 格式化日期
