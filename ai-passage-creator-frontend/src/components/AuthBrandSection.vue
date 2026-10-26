@@ -57,7 +57,7 @@ withDefaults(defineProps<Props>(), {
   position: absolute;
   inset: 0;
   background-image: url('@/assets/shenbi-cta.webp');
-  background-size: 118% auto;
+  background-size: cover;
   background-position: left center;
   background-repeat: no-repeat;
 }
