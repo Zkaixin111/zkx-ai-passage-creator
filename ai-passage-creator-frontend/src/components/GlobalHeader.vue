@@ -245,6 +245,7 @@ const doLogout = async () => {
   display: flex;
   align-items: center;
   gap: 8px;
+  line-height: normal;
 }
 
 .nav-item {
@@ -252,7 +253,9 @@ const doLogout = async () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  height: 40px;
+  line-height: 1.4;
+  padding: 0 16px;
   border-radius: 10px;
   font-size: 14.5px;
   font-weight: 500;
