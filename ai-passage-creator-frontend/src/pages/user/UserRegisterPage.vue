@@ -5,7 +5,7 @@
       <AuthBrandSection
         title-top="新笔开锋，"
         title-em="赠"
-        title-bottom="你三篇"
+        title-bottom="你五篇"
         :points="brandPoints"
       />
 
