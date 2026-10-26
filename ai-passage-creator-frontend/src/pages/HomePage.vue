@@ -159,8 +159,6 @@ onUnmounted(() => {
               落笔 →
             </a-button>
           </div>
-
-          <p class="hero-note">NO BLANK PAGE · 从此没有空白页</p>
         </div>
 
         <!-- 右栏：神笔插画装裱框 -->
@@ -216,7 +214,6 @@ onUnmounted(() => {
     <div class="features">
       <div class="container">
         <div class="sec-head">
-          <p class="kicker">笔 下 有 神</p>
           <h2 class="sec-title">不是一键生成，是全程在场</h2>
           <p class="sec-desc">不是丢给你一篇你不敢署名的文章，而是把生成过程摊开。</p>
         </div>
@@ -458,14 +455,6 @@ onUnmounted(() => {
 .btn-brush:active {
   transform: translateY(2px);
   box-shadow: 0 2px 0 var(--vermilion-dark) !important;
-}
-
-.hero-note {
-  margin-top: 18px;
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  color: var(--ink-3);
-  letter-spacing: 0.05em;
 }
 
 /* 右侧插画：宣纸装裱框 + 内 8px 衬边 + 外投影 */
