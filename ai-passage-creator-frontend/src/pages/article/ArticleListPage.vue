@@ -548,7 +548,7 @@ onMounted(() => {
     }
 
     :deep(.ant-table-tbody > tr:hover > td) {
-      background: rgba(180, 83, 9, 0.02);
+      background: color-mix(in srgb, var(--color-primary) 2%, transparent);
     }
 
     :deep(.ant-table-pagination) {
@@ -601,11 +601,11 @@ onMounted(() => {
     }
 
     &.status-completed {
-      background: rgba(180, 83, 9, 0.1);
-      color: var(--color-primary-dark);
+      background: color-mix(in srgb, var(--color-success) 12%, transparent);
+      color: var(--color-success);
 
       .status-dot {
-        background: var(--color-primary);
+        background: var(--color-success);
       }
     }
 

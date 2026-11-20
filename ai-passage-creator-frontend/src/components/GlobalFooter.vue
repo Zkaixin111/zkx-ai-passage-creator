@@ -2,8 +2,8 @@
   <a-layout-footer class="footer">
     <div class="footer-content">
       <div class="footer-brand">
-        <span class="brand-name gradient-text">协笔 CoWrite</span>
-        <span class="brand-slogan">生成、确认、再生成 —— AI 人机协同写作</span>
+        <span class="brand-name">协笔</span>
+        <span class="brand-slogan">生成、确认、再生成</span>
       </div>
       <p class="copyright">
         <a
@@ -25,11 +25,9 @@
 
 <style scoped>
 .footer {
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  background: var(--color-background);
   text-align: center;
-  padding: 28px 20px;
+  padding: 28px 20px 36px;
   margin-top: 0;
   border-top: 1px solid var(--color-border);
 }
@@ -50,9 +48,9 @@
 }
 
 .brand-name {
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.3px;
+  font-family: var(--font-serif);
+  font-size: 16px;
+  color: var(--color-text);
 }
 
 .brand-slogan {

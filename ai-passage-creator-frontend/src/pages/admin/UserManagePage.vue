@@ -551,7 +551,7 @@ onMounted(() => {
     }
 
     :deep(.ant-table-tbody > tr:hover > td) {
-      background: rgba(180, 83, 9, 0.02);
+      background: color-mix(in srgb, var(--color-primary) 2%, transparent);
     }
 
     :deep(.ant-table-pagination) {
@@ -582,7 +582,7 @@ onMounted(() => {
     padding: 0 6px;
     font-size: 11px;
     color: var(--color-primary-dark);
-    background: rgba(180, 83, 9, 0.1);
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
     border-radius: var(--radius-sm);
   }
 

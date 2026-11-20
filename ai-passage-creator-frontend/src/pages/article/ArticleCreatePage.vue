@@ -208,7 +208,7 @@
               <PictureOutlined />
               <span>正在生成配图</span>
             </div>
-            <a-progress :percent="imageProgress" status="active" :stroke-color="{ from: '#B45309', to: '#92400E' }" />
+            <a-progress :percent="imageProgress" status="active" :stroke-color="{ from: '#C2510A', to: '#8F3A06' }" />
             <p class="progress-hint">{{ imageCount }}/{{ totalImages }} 张图片已完成</p>
           </div>
 
@@ -262,7 +262,7 @@
             <a-progress
               :percent="(quota / 5) * 100"
               :show-info="false"
-              :stroke-color="quota <= 1 ? '#ff4d4f' : '#B45309'"
+              :stroke-color="quota <= 1 ? '#ff4d4f' : '#C2510A'"
               size="small"
               class="quota-progress"
             />
@@ -1085,7 +1085,7 @@ onBeforeUnmount(() => {
 
 /* 左侧边栏 */
 .sidebar-left {
-  background: white;
+  background: var(--color-background);
   border-right: 1px solid var(--color-border);
   padding: 24px;
   display: flex;
@@ -1159,7 +1159,7 @@ onBeforeUnmount(() => {
   }
 
   .active & {
-    background: rgba(180, 83, 9, 0.1);
+    background: color-mix(in srgb, var(--color-primary) 10%, transparent);
     color: var(--color-primary);
     border: 2px solid var(--color-primary);
   }
@@ -1227,7 +1227,7 @@ onBeforeUnmount(() => {
 .main-content {
   padding: 32px 40px;
   overflow-y: auto;
-  background: white;
+  background: var(--color-surface);
 }
 
 /* 输入状态 */
@@ -1238,9 +1238,11 @@ onBeforeUnmount(() => {
 }
 
 .input-card {
-  background: var(--color-background-secondary);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
   padding: 40px;
+  box-shadow: var(--shadow-sm);
 }
 
 .input-header {
@@ -1275,7 +1277,7 @@ onBeforeUnmount(() => {
 
   &:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent);
   }
 }
 
@@ -1287,7 +1289,7 @@ onBeforeUnmount(() => {
   background: var(--gradient-primary) !important;
   border: none !important;
   color: white !important;
-  box-shadow: 0 4px 14px rgba(180, 83, 9, 0.3) !important;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary) 30%, transparent) !important;
 
   &:hover,
   &:focus,
@@ -1295,7 +1297,7 @@ onBeforeUnmount(() => {
     background: var(--gradient-primary) !important;
     color: white !important;
     border: none !important;
-    box-shadow: 0 4px 14px rgba(180, 83, 9, 0.3) !important;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary) 30%, transparent) !important;
     opacity: 0.92;
   }
 
@@ -1347,12 +1349,12 @@ onBeforeUnmount(() => {
 
 .style-group :deep(.ant-radio-wrapper:hover) {
   border-color: var(--color-primary);
-  background: rgba(180, 83, 9, 0.04);
+  background: color-mix(in srgb, var(--color-primary) 4%, transparent);
 }
 
 .style-group :deep(.ant-radio-wrapper-checked) {
   border-color: var(--color-primary);
-  background: rgba(180, 83, 9, 0.08);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
 }
 
 /* 配图方式选择 */
@@ -1398,12 +1400,12 @@ onBeforeUnmount(() => {
 
 .methods-group :deep(.ant-checkbox-wrapper:hover) {
   border-color: var(--color-primary);
-  background: rgba(180, 83, 9, 0.04);
+  background: color-mix(in srgb, var(--color-primary) 4%, transparent);
 }
 
 .methods-group :deep(.ant-checkbox-wrapper-checked) {
   border-color: var(--color-primary);
-  background: rgba(180, 83, 9, 0.08);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
 }
 
 .methods-group :deep(.ant-checkbox-wrapper-disabled) {
@@ -1423,11 +1425,11 @@ onBeforeUnmount(() => {
   gap: 6px;
   margin-top: 12px;
   padding: 10px 14px;
-  background: rgba(180, 83, 9, 0.08);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
   border-radius: var(--radius-md);
   font-size: 12px;
   color: var(--color-primary-dark);
-  border: 1px solid rgba(180, 83, 9, 0.2);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
 
   .anticon {
     color: var(--color-primary);
@@ -1619,7 +1621,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  background: var(--gradient-primary);
+  background: var(--color-success);
   border-radius: var(--radius-full);
   margin-bottom: 24px;
   color: white;
@@ -1633,7 +1635,7 @@ onBeforeUnmount(() => {
 
 /* 右侧辅助面板 */
 .sidebar-right {
-  background: white;
+  background: var(--color-background);
   border-left: 1px solid var(--color-border);
   padding: 24px;
   display: flex;
@@ -1664,7 +1666,7 @@ onBeforeUnmount(() => {
 
 /* 配额信息样式 */
 .quota-section {
-  background: linear-gradient(135deg, rgba(180, 83, 9, 0.05) 0%, rgba(180, 83, 9, 0.02) 100%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 5%, transparent) 0%, color-mix(in srgb, var(--color-primary) 2%, transparent) 100%);
   border-radius: var(--radius-lg);
   padding: 16px !important;
   margin: -8px -8px 12px -8px;
@@ -1761,7 +1763,7 @@ onBeforeUnmount(() => {
   &:hover {
     border-color: var(--color-primary);
     color: var(--color-primary);
-    background: rgba(180, 83, 9, 0.05);
+    background: color-mix(in srgb, var(--color-primary) 5%, transparent);
     transform: translateY(-1px);
   }
 }
@@ -1783,7 +1785,7 @@ onBeforeUnmount(() => {
   transition: all var(--transition-fast);
 
   &:hover {
-    background: rgba(180, 83, 9, 0.05);
+    background: color-mix(in srgb, var(--color-primary) 5%, transparent);
   }
 }
 
@@ -1852,7 +1854,7 @@ onBeforeUnmount(() => {
   align-items: flex-start;
   gap: 8px;
   padding: 12px;
-  background: rgba(180, 83, 9, 0.08);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
   border-radius: var(--radius-md);
   font-size: 12px;
   color: var(--color-primary-dark);

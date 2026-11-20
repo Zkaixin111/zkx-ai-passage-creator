@@ -1,76 +1,75 @@
 /**
- * CSS 变量定义 - 清新绿色配色方案
+ * 协笔视觉变量：纸色底、墨色字、朱砂只用于操作。
  */
 
-/* 引入 Google Fonts - Geometric Modern */
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Work+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@500;600;700&display=swap');
 
 :root {
-  /* 品牌色 - 绿色系 */
-  --color-primary: #B45309;
-  --color-primary-light: #D97757;
-  --color-primary-dark: #92400E;
-  --color-secondary: #0F172A;
-  --color-secondary-light: #334155;
+  --font-sans: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  --font-serif: 'Noto Serif SC', 'Songti SC', 'Source Han Serif SC', serif;
 
-  /* 功能色 */
-  --color-cta: #B45309;
-  --color-success: #B45309;
-  --color-warning: #EAB308;
-  --color-error: #EF4444;
-  --color-info: #3B82F6;
+  --color-primary: #c2510a;
+  --color-primary-light: #e08a45;
+  --color-primary-dark: #8f3a06;
+  --color-secondary: #241c16;
+  --color-secondary-light: #4a4036;
 
-  /* 中性色 */
-  --color-background: #FFFFFF;
-  --color-background-secondary: #F8FAFC;
-  --color-background-tertiary: #F1F5F9;
-  --color-background-dark: #0F172A;
-  --color-text: #0F172A;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94A3B8;
-  --color-border: #E2E8F0;
-  --color-border-light: #F1F5F9;
+  --color-cta: #c2510a;
+  --color-success: #2f6b4f;
+  --color-warning: #b7791f;
+  --color-error: #b42318;
+  --color-info: #1d4e89;
 
-  /* 渐变 */
-  --gradient-primary: linear-gradient(135deg, #B45309 0%, #92400E 100%);
-  --gradient-hero: linear-gradient(180deg, #FDF6EF 0%, #FFFFFF 100%);
-  --gradient-hero-dark: linear-gradient(180deg, #78350F 0%, #451A03 100%);
+  --color-background: #f7f4ee;
+  --color-background-secondary: #f3eee6;
+  --color-background-tertiary: #e8e1d6;
+  --color-background-dark: #241c16;
+  --color-surface: #fffcf7;
+  --color-text: #1c1915;
+  --color-text-secondary: #5c564c;
+  --color-text-muted: #8a8175;
+  --color-border: #e4dcd0;
+  --color-border-light: #efe8de;
 
-  /* 纯色背景 */
-  --bg-primary: #B45309;
-  --bg-primary-hover: #92400E;
-  --bg-dark: #0F172A;
-  --bg-dark-hover: #1E293B;
-  --bg-success: #B45309;
+  /* 历史类名保留，值改为纯色，避免各页继续叠渐变。 */
+  --gradient-primary: #c2510a;
+  --gradient-hero: #f7f4ee;
+  --gradient-hero-dark: #241c16;
+  --gradient-text: #1c1915;
+  --gradient-glow: none;
 
-  /* 阴影 */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-card-hover: 0 8px 24px rgba(180, 83, 9, 0.15);
-  --shadow-green: 0 4px 14px rgba(180, 83, 9, 0.25);
+  --bg-primary: #c2510a;
+  --bg-primary-hover: #8f3a06;
+  --bg-dark: #241c16;
+  --bg-dark-hover: #3a3128;
+  --bg-success: #2f6b4f;
 
-  /* 圆角 */
+  --shadow-sm: 0 1px 2px rgba(36, 28, 22, 0.05);
+  --shadow-md: 0 10px 28px rgba(36, 28, 22, 0.06);
+  --shadow-lg: 0 18px 40px rgba(36, 28, 22, 0.08);
+  --shadow-xl: 0 28px 64px rgba(36, 28, 22, 0.12);
+  --shadow-card: 0 1px 2px rgba(36, 28, 22, 0.04);
+  --shadow-card-hover: 0 14px 32px rgba(36, 28, 22, 0.08);
+  --shadow-green: none;
+  --shadow-glow: 0 14px 32px rgba(36, 28, 22, 0.08);
+
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
-  --radius-2xl: 24px;
+  --radius-2xl: 20px;
   --radius-full: 9999px;
 
-  /* 过渡 */
   --transition-fast: 150ms ease-out;
   --transition-normal: 200ms ease-out;
   --transition-slow: 300ms ease-out;
+  --transition-bounce: 200ms ease-out;
 
-  /* 毛玻璃 */
-  --glass-bg: rgba(255, 255, 255, 0.9);
-  --glass-bg-green: rgba(220, 252, 231, 0.8);
-  --glass-blur: blur(12px);
+  --glass-bg: rgba(255, 252, 247, 0.92);
+  --glass-bg-green: rgba(247, 244, 238, 0.9);
+  --glass-blur: blur(16px);
+  --glass-border: 1px solid var(--color-border);
 
-  /* 响应式断点（用于 JS 读取） */
   --breakpoint-sm: 640px;
   --breakpoint-md: 768px;
   --breakpoint-lg: 992px;

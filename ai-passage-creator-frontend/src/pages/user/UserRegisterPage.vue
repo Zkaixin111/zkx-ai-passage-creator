@@ -1,31 +1,7 @@
 <template>
   <div id="userRegisterPage">
     <div class="auth-container">
-      <!-- 左侧品牌区域 -->
-      <div class="brand-section">
-        <div class="brand-bg"></div>
-        <div class="brand-content">
-          <div class="brand-logo">
-            <img src="@/assets/logo.png" alt="Logo" class="logo-img" />
-          </div>
-          <h1 class="brand-title">协笔 CoWrite</h1>
-          <p class="brand-subtitle">生成、确认、再生成 —— 每一步都由你掌控</p>
-          <div class="brand-features">
-            <div class="feature-item">
-              <CheckCircleOutlined class="feature-check" />
-              <span>标题、大纲由你确认，AI 全力辅助</span>
-            </div>
-            <div class="feature-item">
-              <CheckCircleOutlined class="feature-check" />
-              <span>流式生成正文，进度实时可见</span>
-            </div>
-            <div class="feature-item">
-              <CheckCircleOutlined class="feature-check" />
-              <span>多策略配图，图文一键成稿</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      <AuthBrandSection />
       
       <!-- 右侧表单区域 -->
       <div class="form-section">
@@ -106,7 +82,8 @@ import { useRouter } from 'vue-router'
 import { userRegister } from '@/api/userController.ts'
 import { message } from 'ant-design-vue'
 import { reactive } from 'vue'
-import { UserOutlined, LockOutlined, SafetyOutlined, CheckCircleOutlined } from '@ant-design/icons-vue'
+import { UserOutlined, LockOutlined, SafetyOutlined } from '@ant-design/icons-vue'
+import AuthBrandSection from '@/components/AuthBrandSection.vue'
 
 const router = useRouter()
 
@@ -164,104 +141,11 @@ const handleSubmit = async (values: API.UserRegisterRequest) => {
   width: 100%;
   max-width: 900px;
   min-height: 580px;
-  background: white;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-2xl);
   overflow: hidden;
-  box-shadow: var(--shadow-xl);
-}
-
-/* 左侧品牌区域 */
-.brand-section {
-  flex: 1;
-  padding: 48px 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.brand-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, #B45309 0%, #92400E 50%, #78350F 100%);
-}
-
-.brand-bg::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-  animation: pulse-bg 8s ease-in-out infinite;
-}
-
-@keyframes pulse-bg {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 0.3; }
-}
-
-.brand-content {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  color: white;
-}
-
-.brand-logo {
-  margin-bottom: 24px;
-}
-
-.logo-img {
-  width: 80px;
-  height: 80px;
-  object-fit: contain;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: var(--radius-xl);
-  padding: 8px;
-}
-
-.brand-title {
-  font-size: 26px;
-  font-weight: 700;
-  margin: 0 0 10px;
-  letter-spacing: -0.5px;
-}
-
-.brand-subtitle {
-  font-size: 15px;
-  opacity: 0.9;
-  margin: 0 0 36px;
-}
-
-.brand-features {
-  text-align: left;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-lg);
-  padding: 20px 24px;
-  backdrop-filter: blur(8px);
-}
-
-.feature-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
-  font-size: 14px;
-}
-
-.feature-item:last-child {
-  margin-bottom: 0;
-}
-
-.feature-check {
-  font-size: 18px;
-  color: white;
+  box-shadow: var(--shadow-lg);
 }
 
 /* 右侧表单区域 */
@@ -271,7 +155,7 @@ const handleSubmit = async (values: API.UserRegisterRequest) => {
   align-items: center;
   justify-content: center;
   padding: 48px 40px;
-  background: white;
+  background: var(--color-surface);
 }
 
 .form-card {
@@ -310,7 +194,7 @@ const handleSubmit = async (values: API.UserRegisterRequest) => {
 .form-input:focus,
 .form-input:focus-within {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(180, 83, 9, 0.1);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 10%, transparent);
 }
 
 .form-input :deep(.ant-input) {
@@ -325,27 +209,7 @@ const handleSubmit = async (values: API.UserRegisterRequest) => {
 .submit-btn {
   height: 48px;
   font-size: 16px;
-  font-weight: 600;
   border-radius: var(--radius-lg);
-  background: var(--gradient-primary) !important;
-  border: none !important;
-  color: white !important;
-  box-shadow: var(--shadow-green) !important;
-  transition: opacity var(--transition-normal) !important;
-}
-
-.submit-btn:hover,
-.submit-btn:focus,
-.submit-btn:active {
-  background: var(--gradient-primary) !important;
-  border: none !important;
-  color: white !important;
-  box-shadow: var(--shadow-green) !important;
-  opacity: 0.92;
-}
-
-.submit-btn :deep(.ant-wave) {
-  display: none;
 }
 
 .form-footer {
