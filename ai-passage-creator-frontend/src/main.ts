@@ -7,6 +7,7 @@ import router from './router'
 import Antd from 'ant-design-vue'
 import zhCN from 'ant-design-vue/es/locale/zh_CN'
 import 'ant-design-vue/dist/reset.css'
+import '@/styles/variables.css'
 import 'dayjs/locale/zh-cn'
 
 import '@/access'

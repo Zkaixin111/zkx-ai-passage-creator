@@ -415,8 +415,8 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background: rgba(180, 83, 9, 0.1);
-  border: 1px solid rgba(180, 83, 9, 0.2);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
   border-radius: var(--radius-full);
   font-size: 13px;
   font-weight: 600;
@@ -491,7 +491,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(180, 83, 9, 0.1);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
   border-radius: var(--radius-lg);
 
   .anticon {
@@ -653,7 +653,7 @@ onUnmounted(() => {
   background: var(--glass-bg-green);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid rgba(180, 83, 9, 0.15);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 15%, transparent);
   border-radius: var(--radius-lg);
   transition: transform var(--transition-bounce), box-shadow var(--transition-normal), background var(--transition-normal);
 
@@ -671,7 +671,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(180, 83, 9, 0.1);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
   border-radius: var(--radius-md);
 }
 
@@ -837,7 +837,7 @@ onUnmounted(() => {
 
       &.ant-radio-wrapper-checked {
         border-color: var(--color-primary);
-        background: rgba(180, 83, 9, 0.04);
+        background: color-mix(in srgb, var(--color-primary) 4%, transparent);
       }
 
       .anticon {

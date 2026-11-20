@@ -4,8 +4,11 @@
       <div class="header-left">
         <RouterLink to="/" class="logo-link">
           <div class="logo-wrapper">
-            <img src="@/assets/logo.png" alt="Logo" class="logo-img" />
-            <h1 class="site-title">协笔 CoWrite</h1>
+            <img src="@/assets/logo.png" alt="" class="logo-img" />
+            <span class="brand-lockup">
+              <span class="site-title">协笔</span>
+              <span class="site-en">CoWrite</span>
+            </span>
           </div>
         </RouterLink>
       </div>
@@ -72,7 +75,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { useLoginUserStore } from '@/stores/loginUser.ts'
 import { userLogout } from '@/api/userController.ts'
@@ -90,8 +93,8 @@ import { isVip as checkIsVip } from '@/utils/permission'
 
 const loginUserStore = useLoginUserStore()
 const router = useRouter()
-// 当前选中菜单
-const selectedKeys = ref<string[]>(['/'])
+const route = useRoute()
+const selectedKeys = ref<string[]>([route.path])
 // 监听路由变化，更新当前选中菜单
 router.afterEach((to) => {
   selectedKeys.value = [to.path]
@@ -162,27 +165,13 @@ const doLogout = async () => {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: var(--glass-blur) saturate(180%);
-  -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
+  background: color-mix(in srgb, var(--color-background) 88%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   padding: 0;
   height: 64px;
   line-height: 64px;
   border-bottom: 1px solid var(--color-border);
-  transition: all var(--transition-normal);
-  overflow: hidden;
-}
-
-/* 顶部渐变光条（品牌色） */
-.header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--gradient-primary);
-  opacity: 0.85;
 }
 
 .header-container {
@@ -216,22 +205,30 @@ const doLogout = async () => {
 }
 
 .logo-img {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
+  border-radius: 8px;
+}
+
+.brand-lockup {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  line-height: 1;
 }
 
 .site-title {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 700;
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 600;
   color: var(--color-text);
-  white-space: nowrap;
-  letter-spacing: -0.3px;
-  background: var(--gradient-text);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+}
+
+.site-en {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
 }
 
 /* 导航菜单 */
@@ -246,41 +243,30 @@ const doLogout = async () => {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
+  padding: 8px 12px;
   border-radius: var(--radius-md);
   font-size: 14px;
   font-weight: 500;
   color: var(--color-text-secondary);
-  transition: all var(--transition-fast);
   text-decoration: none;
-}
-
-/* 导航项底部滑动指示条 */
-.nav-item::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 50%;
-  transform: translateX(-50%) scaleX(0);
-  width: 60%;
-  height: 2px;
-  border-radius: var(--radius-full);
-  background: var(--gradient-primary);
-  transition: transform var(--transition-normal);
 }
 
 .nav-item:hover {
   color: var(--color-text);
-  background: var(--color-background-secondary);
 }
 
 .nav-item.active {
-  color: var(--color-primary-dark);
-  background: rgba(180, 83, 9, 0.1);
+  color: var(--color-text);
 }
 
 .nav-item.active::after {
-  transform: translateX(-50%) scaleX(1);
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 1px;
+  background: var(--color-text);
 }
 
 .nav-icon {
@@ -316,7 +302,7 @@ const doLogout = async () => {
   transition: all var(--transition-fast);
 
   &:hover {
-    background: rgba(180, 83, 9, 0.08);
+    background: var(--color-background-secondary);
     color: var(--color-primary-dark);
   }
 
@@ -371,22 +357,20 @@ const doLogout = async () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 38px;
-  padding: 0 24px;
+  height: 36px;
+  padding: 0 16px;
   border-radius: var(--radius-md);
   font-size: 14px;
   font-weight: 600;
-  color: white;
-  background: var(--gradient-primary);
-  border: none;
-  box-shadow: var(--shadow-green);
-  transition: all var(--transition-normal);
+  color: var(--color-text);
+  background: transparent;
+  border: 1px solid var(--color-text);
   text-decoration: none;
 }
 
 .login-btn:hover {
-  color: white;
-  box-shadow: 0 6px 20px rgba(180, 83, 9, 0.35);
+  color: var(--color-surface);
+  background: var(--color-text);
 }
 
 .dropdown-menu {
@@ -410,12 +394,12 @@ const doLogout = async () => {
 
 .vip-info-item {
   color: var(--color-primary-dark);
-  background: rgba(180, 83, 9, 0.1);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
   font-weight: 600;
   cursor: default;
 
   &:hover {
-    background: rgba(180, 83, 9, 0.15);
+    background: color-mix(in srgb, var(--color-primary) 16%, transparent);
   }
 }
 
@@ -425,7 +409,7 @@ const doLogout = async () => {
     padding: 0 16px;
   }
 
-  .site-title {
+  .brand-lockup {
     display: none;
   }
 

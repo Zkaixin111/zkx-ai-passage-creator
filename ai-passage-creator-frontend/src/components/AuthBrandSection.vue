@@ -1,179 +1,93 @@
 <template>
   <div class="brand-section">
-    <div class="brand-bg"></div>
     <div class="brand-content">
-      <div class="brand-logo">
-        <img src="@/assets/logo.png" alt="Logo" class="logo-img" />
-      </div>
-      <h1 class="brand-title">协笔 CoWrite</h1>
-      <p class="brand-subtitle">生成、确认、再生成 —— 每一步都由你掌控</p>
-      <div class="brand-features">
-        <div class="feature-item">
-          <CheckCircleOutlined class="feature-check" />
-          <span>标题、大纲由你确认，AI 全力辅助</span>
-        </div>
-        <div class="feature-item">
-          <CheckCircleOutlined class="feature-check" />
-          <span>流式生成正文，进度实时可见</span>
-        </div>
-        <div class="feature-item">
-          <CheckCircleOutlined class="feature-check" />
-          <span>多策略配图，图文一键成稿</span>
-        </div>
-      </div>
+      <img src="@/assets/logo.png" alt="" class="logo-img" />
+      <p class="brand-kicker">人机协同写作</p>
+      <h1 class="brand-title">协笔</h1>
+      <p class="brand-subtitle">生成、确认、再生成。关键的地方，停下来等你。</p>
+      <ul class="brand-features">
+        <li>标题和大纲先给你看</li>
+        <li>正文一边写，进度一边留在页面上</li>
+        <li>配图等到读完正文再决定</li>
+      </ul>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
-import { CheckCircleOutlined } from '@ant-design/icons-vue'
-</script>
-
 <style scoped>
 .brand-section {
-  flex: 1;
-  padding: 48px 40px;
+  flex: 1.05;
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.brand-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.18) 0%, transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(254, 243, 199, 0.28) 0%, transparent 45%),
-    linear-gradient(135deg, #B45309 0%, #92400E 50%, #78350F 100%);
-}
-
-/* 漂浮光斑装饰 */
-.brand-section::before,
-.brand-section::after {
-  content: '';
-  position: absolute;
-  border-radius: var(--radius-full);
-  filter: blur(70px);
-  opacity: 0.45;
-  animation: brand-float 10s ease-in-out infinite;
-  pointer-events: none;
-}
-
-.brand-section::before {
-  width: 300px;
-  height: 300px;
-  top: -80px;
-  right: -80px;
-  background: rgba(255, 255, 255, 0.35);
-}
-
-.brand-section::after {
-  width: 200px;
-  height: 200px;
-  bottom: -60px;
-  left: -40px;
-  background: rgba(255, 255, 255, 0.25);
-  animation-delay: -5s;
-}
-
-@keyframes brand-float {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-20px) scale(1.08);
-  }
-}
-
-.brand-bg::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-  animation: pulse-bg 8s ease-in-out infinite;
-}
-
-@keyframes pulse-bg {
-  0%, 100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 0.3; }
+  padding: 48px 40px;
+  background: var(--color-background-dark);
+  color: #f6f1e8;
 }
 
 .brand-content {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  color: white;
-}
-
-.brand-logo {
-  margin-bottom: 24px;
+  max-width: 360px;
 }
 
 .logo-img {
-  width: 80px;
-  height: 80px;
+  width: 56px;
+  height: 56px;
   object-fit: contain;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: var(--radius-xl);
-  padding: 8px;
+  border-radius: 14px;
+  margin-bottom: 28px;
+}
+
+.brand-kicker {
+  margin: 0 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  color: #e7c3a4;
 }
 
 .brand-title {
-  font-size: 26px;
-  font-weight: 700;
-  margin: 0 0 10px;
-  letter-spacing: -0.5px;
+  margin: 0 0 12px;
+  font-size: 48px;
+  line-height: 1;
+  color: #f6f1e8;
 }
 
 .brand-subtitle {
+  margin: 0 0 28px;
   font-size: 15px;
-  opacity: 0.9;
-  margin: 0 0 36px;
+  line-height: 1.7;
+  color: rgba(246, 241, 232, 0.78);
 }
 
 .brand-features {
-  text-align: left;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: var(--radius-lg);
-  padding: 20px 24px;
-  backdrop-filter: blur(12px) saturate(160%);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.feature-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
+.brand-features li {
+  position: relative;
+  padding-left: 16px;
+  margin-bottom: 12px;
   font-size: 14px;
+  color: rgba(246, 241, 232, 0.9);
 }
 
-.feature-item:last-child {
-  margin-bottom: 0;
+.brand-features li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.65em;
+  width: 6px;
+  height: 1px;
+  background: #e7c3a4;
 }
 
-.feature-check {
-  font-size: 18px;
-  color: white;
-}
-
-/* 响应式 */
 @media (max-width: 768px) {
   .brand-section {
-    padding: 32px 24px;
+    padding: 28px 24px;
   }
 
   .brand-title {
-    font-size: 22px;
+    font-size: 36px;
   }
 
   .brand-features {

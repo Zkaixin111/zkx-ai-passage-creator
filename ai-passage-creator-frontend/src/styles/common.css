@@ -4,28 +4,27 @@
 
 /* ==================== 按钮样式 ==================== */
 
-/* 渐变主按钮 */
+/* 主按钮：纯色，不发光 */
 .btn-primary-gradient {
   height: 44px;
   padding: 0 24px;
   font-size: 15px;
   font-weight: 600;
   border-radius: var(--radius-lg);
-  background: var(--gradient-primary) !important;
+  background: var(--bg-primary) !important;
   border: none !important;
   color: white !important;
-  box-shadow: var(--shadow-green) !important;
-  transition: opacity var(--transition-normal) !important;
+  box-shadow: none !important;
+  transition: background var(--transition-normal) !important;
 }
 
 .btn-primary-gradient:hover,
 .btn-primary-gradient:focus,
 .btn-primary-gradient:active {
-  background: var(--gradient-primary) !important;
+  background: var(--bg-primary-hover) !important;
   border: none !important;
   color: white !important;
-  box-shadow: var(--shadow-green) !important;
-  opacity: 0.92;
+  box-shadow: none !important;
 }
 
 .btn-primary-gradient:disabled,

@@ -34,12 +34,12 @@ const statusText = computed(() => getStatusText(props.status))
 }
 
 .status-badge.status-completed {
-  background: rgba(180, 83, 9, 0.1);
-  color: var(--color-primary-dark);
+  background: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: var(--color-success);
 }
 
 .status-badge.status-completed .status-dot {
-  background: var(--color-primary);
+  background: var(--color-success);
 }
 
 .status-badge.status-processing {
